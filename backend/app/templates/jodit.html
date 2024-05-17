@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Potato</title>
+
+    <!-- <link rel="stylesheet" href="static" -->
+    <link rel="stylesheet" href="/static/jodit/jodit.min.css" />
+    <script src="/static/jodit/jodit.min.js"></script>
+</head>
+
+<body>
+    <h1>Potato</h1>
+    <p>It's a potato!</p>
+
+
+    <textarea id="editor"></textarea>
+    <script>
+        const editor = Jodit.make('#editor', {
+            uploader: {
+                url: '/api/v1/image',
+                format: 'json',
+                buildData: function (data) {
+                    let i = 0;
+                    let fd = new FormData();
+
+
+                    while (true) {
+                        if (data.getAll(`files[${i}]`).length == 0) {
+                            break;
+                        }
+                        fd.append('files', data.getAll(`files[${i}]`)[0]);
+                        i++;
+                    }
+                    console.log(fd);
+                    return fd;
+                },
+                isSuccess: function (resp) {
+
+                    return true;
+                },
+                process: function (resp) {
+                    return resp;
+                },
+                defaultHandlerSuccess: function (data, resp) {
+                    console.log(data, resp);
+                    let i;
+                    let image_list = data["data"]
+                    console.log(image_list, image_list.length, image_list && image_list.length);
+                    if (image_list && image_list.length) {
+                        for (i = 0; i < image_list.length; i += 1) {
+                            console.log(image_list[i]["media"]["link"]);
+                            this.s.insertImage(image_list[i]["media"]["link"]);
+                        }
+                    }
+                },
+            }
+        });
+    </script>
+
+</body>
+
+
+
+</html>
