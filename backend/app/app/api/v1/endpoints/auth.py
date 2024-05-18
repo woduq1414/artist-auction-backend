@@ -156,6 +156,8 @@ async def social_kakao_redirect(
                         {"loginType": "kakao", "accessToken": access_token}
                     ).encode("utf-8")
                 ).decode("utf-8"),
+                domain="127.0.0.1" if ("127.0.0.1" in settings.BACKEND_URL) else ".artistauction.kro.kr"
+                
             )
             return response
 
