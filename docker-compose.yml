@@ -67,14 +67,14 @@ services:
       - caddy_config:/config
 
 
-    frontend:
-      container_name: frontend
-      build : ../artist-auction-frontend
-      restart: always
-      expose:
-        - 3000
-      volumes:
-        - ../artist-auction-frontend
+  frontend:
+    container_name: frontend
+    build : ../artist-auction-frontend
+    restart: always
+    expose:
+      - 3000
+    volumes:
+      - ../artist-auction-frontend
 
 
 volumes:
