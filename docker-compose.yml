@@ -19,7 +19,8 @@ services:
       - caddy_reverse_proxy:storage.localhost
   
   database:
-    image: bitnami/postgresql:13.3.0
+    # image: bitnami/postgresql:13.3.0
+    image : arm64v8/postgres
     restart: always
     container_name: database
     env_file: ".env"
