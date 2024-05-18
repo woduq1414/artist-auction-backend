@@ -10,7 +10,7 @@ fastapi.{$EXT_ENDPOINT1}:80, fastapi.{$LOCAL_1}:80, fastapi.{$LOCAL_2}:80, :80 {
     file_server
   }
 
-  reverse_proxy fastapi_server:8000
+  reverse_proxy fastapi_server:8008
 }
 
 storage.{$EXT_ENDPOINT1}:80, storage.{$LOCAL_1}:80, storage.{$LOCAL_2}:80 {

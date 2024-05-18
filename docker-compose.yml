@@ -52,7 +52,7 @@ services:
     image: caddy:alpine
     restart: always
     ports:
-      - 80:80
+      - 88:88
       - 8088:8088
       - 443:443
     environment:
