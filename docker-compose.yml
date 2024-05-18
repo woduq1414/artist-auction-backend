@@ -69,12 +69,11 @@ services:
 
   frontend:
     container_name: frontend
-    build : ../artist-auction-frontend
+    build: ../artist-auction-frontend
     restart: always
     expose:
       - 3000
-    volumes:
-      - ../artist-auction-frontend
+
 
 
 volumes:
