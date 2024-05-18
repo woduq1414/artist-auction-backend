@@ -92,7 +92,7 @@ class Settings(BaseSettings):
     MINIO_BUCKET: str
 
     WHEATER_URL: AnyHttpUrl
-    FRONTEND_URL: AnyHttpUrl = "http://127.0.0.1:3000"
+    FRONTEND_URL: AnyHttpUrl
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ENCRYPT_KEY = secrets.token_urlsafe(32)
