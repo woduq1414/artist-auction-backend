@@ -1,0 +1,59 @@
+{
+  email custom@domain.com
+
+  
+}
+
+fastapi.{$EXT_ENDPOINT1}:88, fastapi.{$LOCAL_1}:88, fastapi.{$LOCAL_2}:88, :88 {
+  handle_path /static* {
+    root * /code/static
+    file_server
+  }
+
+  reverse_proxy fastapi_server:8008
+}
+
+storage.{$EXT_ENDPOINT1}:88, storage.{$LOCAL_1}:88, storage.{$LOCAL_2}:88 {
+  reverse_proxy minio_server:9000 
+}
+
+stash.{$EXT_ENDPOINT1}:88, stash.{$LOCAL_1}:88, stash.{$LOCAL_2}:88 {
+  reverse_proxy minio_server:9090 
+}
+
+# static.{$EXT_ENDPOINT1}:80, static.{$LOCAL_1}:80, static.{$LOCAL_2}:80 {
+#   root * /code/static
+#   file_server browse
+# }
+
+# static.{$EXT_ENDPOINT1}:80, static.{$LOCAL_1}:80, static.{$LOCAL_2}:80 {
+#   root * /code/static
+#   file_server browse
+# }
+
+# 127.0.0.1:80 {
+#   handle_path /static* {
+#       root * /code/static
+#       file_server
+#   }
+
+#   reverse_proxy fastapi_server:8000
+# }
+
+## Uncomment this to automatic ssl
+# fastapi.{$EXT_ENDPOINT1}, fastapi.{$LOCAL_1}, fastapi.{$LOCAL_2} {
+#   reverse_proxy fastapi_server:8000
+# }
+
+# storage.{$EXT_ENDPOINT1}, storage.{$LOCAL_1}, storage.{$LOCAL_2} {
+#   reverse_proxy minio_server:9000 
+# }
+
+# stash.{$EXT_ENDPOINT1}, stash.{$LOCAL_1}, stash.{$LOCAL_2} {
+#   reverse_proxy minio_server:9090 
+# }
+
+# static.{$EXT_ENDPOINT1}, static.{$LOCAL_1}, static.{$LOCAL_2} {
+#   root * /code/static
+#   file_server browse
+# }
