@@ -48,7 +48,7 @@ services:
   celery_worker:
     container_name: celery_worker
     restart: always
-    # platform: linux/arm64/v8
+    platform: linux/arm64/v8
     build:
       context: ./backend      
       args:
@@ -65,7 +65,7 @@ services:
   celery_beat:  #Good for crontab and schedule tasks
     container_name: celery_beat
     restart: always
-    # platform: linux/arm64/v8
+    platform: linux/arm64/v8
     build:
       context: ./backend
       args:
