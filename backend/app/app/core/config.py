@@ -93,6 +93,7 @@ class Settings(BaseSettings):
 
     WHEATER_URL: AnyHttpUrl
     FRONTEND_URL: AnyHttpUrl
+    BACKEND_URL: AnyHttpUrl
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ENCRYPT_KEY = secrets.token_urlsafe(32)

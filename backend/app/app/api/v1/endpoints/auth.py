@@ -122,7 +122,7 @@ async def social_kakao_redirect(
         {
             "grant_type": "authorization_code",
             "client_id": "9a022bf07d96f5bd196f5223293c1f0e",
-            "redirect_uri": "http://127.0.0.1/api/v1/auth/social/kakao",
+            "redirect_uri": settings.BACKEND_URL+"/api/v1/auth/social/kakao",
             "code": code,
         },
     )

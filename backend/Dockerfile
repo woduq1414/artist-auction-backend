@@ -16,5 +16,7 @@ COPY app/pyproject.toml app/poetry.lock* /code/
 ARG INSTALL_DEV=false
 RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
 
+# COPY ../.env ../.env
+
 ENV PYTHONPATH=/code
 EXPOSE 8008

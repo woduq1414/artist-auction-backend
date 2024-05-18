@@ -106,7 +106,7 @@ services:
       - LOCAL_1=${LOCAL_1}
       - LOCAL_2=${LOCAL_2}
     volumes:
-      - ./caddy/ProdCaddyfile:/etc/caddy/Caddyfile
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./static:/code/static
       - caddy_data:/data
       - caddy_config:/config
