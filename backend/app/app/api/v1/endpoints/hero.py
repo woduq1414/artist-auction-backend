@@ -31,7 +31,7 @@ router = APIRouter()
 @router.get("")
 async def get_hero_list(
     params: Params = Depends(),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[IHeroReadWithTeam]:
     """
     Gets a paginated list of heroes
@@ -47,7 +47,7 @@ async def get_hero_list_order_by_created_at(
         default=IOrderEnum.ascendent, description="It is optional. Default is ascendent"
     ),
     params: Params = Depends(),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[IHeroReadWithTeam]:
     """
     Gets a paginated list of heroes ordered by created at datetime
@@ -61,7 +61,7 @@ async def get_hero_list_order_by_created_at(
 @router.get("/get_by_id/{hero_id}")
 async def get_hero_by_id(
     hero_id: UUID,
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponseBase[IHeroReadWithTeam]:
     """
     Gets a hero by its id
@@ -77,7 +77,7 @@ async def get_hero_by_id(
 @router.get("/get_by_name/{hero_name}")
 async def get_hero_by_name(
     hero_name: str,
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponseBase[list[IHeroReadWithTeam]]:
     """
     Gets a hero by his/her name
@@ -93,7 +93,7 @@ async def get_hero_by_name(
 async def create_hero(
     hero: IHeroCreate,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPostResponseBase[IHeroRead]:
     """
@@ -112,7 +112,7 @@ async def update_hero(
     hero_id: UUID,
     hero: IHeroUpdate,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPutResponseBase[IHeroRead]:
     """
@@ -139,7 +139,7 @@ async def update_hero(
 async def remove_hero(
     hero_id: UUID,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IDeleteResponseBase[IHeroRead]:
     """

@@ -436,3 +436,11 @@ variable "WHEATER_URL" {
   description = ""  
   default = "https://wttr.in"
 }
+
+variable "FRONTEND_URL" {
+  type        = string
+  description = ""  
+  default = "http://127.0.0.1:3000"
+}
+
+

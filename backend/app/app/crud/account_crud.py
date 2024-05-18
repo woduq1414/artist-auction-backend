@@ -6,6 +6,7 @@ from app.models.account_model import Account
 from app.models.media_model import Media
 from app.models.image_media_model import ImageMedia
 from app.core.security import verify_password, get_password_hash
+from app.schemas.common_schema import ILoginTypeEnum
 from pydantic.networks import EmailStr
 from typing import Any
 from app.crud.base_crud import CRUDBase
@@ -14,10 +15,12 @@ from sqlmodel import select
 from uuid import UUID
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from sqlalchemy import and_
+
 from app.utils.login import verify_kakao_access_token
 
 
-class CRUDACcount(CRUDBase[Account, IAccountCreate, IAccountUpdate]):
+class CRUDAccount(CRUDBase[Account, IAccountCreate, IAccountUpdate]):
     async def get_by_email(
         self, *, email: str, db_session: AsyncSession | None = None
     ) -> User | None:
@@ -31,6 +34,13 @@ class CRUDACcount(CRUDBase[Account, IAccountCreate, IAccountUpdate]):
     ) -> Account | None:
         db_session = db_session or super().get_db().session
         accounts = await db_session.execute(select(Account).where(Account.artist_id == artist_id))
+        return accounts.scalar_one_or_none()
+    
+    async def get_by_social_id(
+        self, *, social_id: str, db_session: AsyncSession | None = None
+    ) -> Account | None:
+        db_session = db_session or super().get_db().session
+        accounts = await db_session.execute(select(Account).where(Account.social_id == social_id))
         return accounts.scalar_one_or_none()
 
 
@@ -72,22 +82,22 @@ class CRUDACcount(CRUDBase[Account, IAccountCreate, IAccountUpdate]):
 
     async def authenticate(self, *, email: EmailStr, password: str) -> Account | None:
         account = await self.get_by_email(email=email)
-        if not Account:
+        if not account:
             return None
-        if not verify_password(password, account.hashed_password):
+        if not verify_password(password, account.password):
             return None
-        return Account
+        return account
 
     async def authenticate_kakao(self, *, kakao_access_token: str) -> Account | None:
         kakao_id = verify_kakao_access_token(
             kakao_access_token=kakao_access_token)
         if kakao_id is None:
             return None
-        Account = await self.get_by_kakao_id(kakao_id=kakao_id)
-        if not Account:
+        account = await self.get_by_kakao_id(kakao_id=kakao_id)
+        if not account:
             return None
-        return Account
+        return account
 
 
 
-account = CRUDACcount(Account)
+account = CRUDAccount(Account)

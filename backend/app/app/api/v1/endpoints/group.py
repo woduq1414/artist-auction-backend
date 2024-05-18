@@ -31,7 +31,7 @@ router = APIRouter()
 @router.get("")
 async def get_groups(
     params: Params = Depends(),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[IGroupRead]:
     """
     Gets a paginated list of groups
@@ -43,7 +43,7 @@ async def get_groups(
 @router.get("/{group_id}")
 async def get_group_by_id(
     group_id: UUID,
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponseBase[IGroupReadWithUsers]:
     """
     Gets a group by its id
@@ -59,7 +59,7 @@ async def get_group_by_id(
 async def create_group(
     group: IGroupCreate,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPostResponseBase[IGroupRead]:
     """
@@ -81,7 +81,7 @@ async def update_group(
     group: IGroupUpdate,
     current_group: Group = Depends(group_deps.get_group_by_id),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPutResponseBase[IGroupRead]:
     """
@@ -100,7 +100,7 @@ async def add_user_into_a_group(
     user: User = Depends(user_deps.is_valid_user),
     group: Group = Depends(group_deps.get_group_by_id),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPostResponseBase[IGroupRead]:
     """
@@ -120,7 +120,7 @@ async def delete_user_into_a_group(
     user: User = Depends(user_deps.is_valid_user),
     group: Group = Depends(group_deps.get_group_by_id),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPostResponseBase[IGroupRead]:
     """

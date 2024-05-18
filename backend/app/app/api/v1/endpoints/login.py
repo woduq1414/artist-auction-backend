@@ -58,7 +58,7 @@ async def login(
 async def change_password(
     current_password: str = Body(...),
     new_password: str = Body(...),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
     redis_client: Redis = Depends(get_redis_client),
 ) -> IPostResponseBase[Token]:
     """

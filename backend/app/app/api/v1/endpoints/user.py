@@ -64,7 +64,7 @@ router = APIRouter()
 async def read_users_list(
     params: Params = Depends(),
     current_user: User = Depends(
-        deps.get_current_user(
+        deps.get_current_account(
             required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IGetResponsePaginated[IUserRead]:
@@ -83,7 +83,7 @@ async def read_users_list(
 async def read_users_list_trivial(
     params: Params = Depends(),
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IGetResponsePaginated[IUserReadTrivial]:
     """
@@ -110,7 +110,7 @@ async def read_users_list_by_group_name(
     ] = IUserStatus.active,
     params: Params = Depends(),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin])
+        deps.get_current_account(required_roles=[IRoleEnum.admin])
     ),
 ) -> IGetResponsePaginated[IUserReadWithoutGroups]:
     """
@@ -159,7 +159,7 @@ async def read_users_list_by_group_name(
 # async def get_hero_list_order_by_created_at(
 #     params: Params = Depends(),
 #     current_user: User = Depends(
-#         deps.get_current_user(
+#         deps.get_current_account(
 #             required_roles=[IRoleEnum.admin, IRoleEnum.manager])
 #     ),
 # ) -> IGetResponsePaginated[IUserReadWithoutGroups]:
@@ -238,7 +238,7 @@ async def update_user_role(
     role_id: UUID,
     target_user: User = Depends(user_deps.is_valid_user),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin])
+        deps.get_current_account(required_roles=[IRoleEnum.admin])
     ),
 ) -> IPutResponseBase[IRoleRead]:
     """
@@ -259,7 +259,7 @@ async def update_user_role(
 async def get_user_by_id(
     user: User = Depends(user_deps.is_valid_user),
     current_user: User = Depends(
-        deps.get_current_user(
+        deps.get_current_account(
             required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IGetResponseBase[IUserRead]:
@@ -275,7 +275,7 @@ async def get_user_by_id(
 
 @router.get("")
 async def get_my_data(
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponseBase[IUserRead]:
     """
     Gets my user profile information
@@ -287,7 +287,7 @@ async def get_my_data(
 async def create_user(
     new_user: IUserCreate = Depends(user_deps.user_exists),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin])
+        deps.get_current_account(required_roles=[IRoleEnum.admin])
     ),
 ) -> IPostResponseBase[IUserRead]:
     """
@@ -304,7 +304,7 @@ async def create_user(
 async def remove_user(
     user_id: UUID = Depends(user_deps.is_valid_user_id),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin])
+        deps.get_current_account(required_roles=[IRoleEnum.admin])
     ),
 ) -> IDeleteResponseBase[IUserRead]:
     """
@@ -325,7 +325,7 @@ async def upload_my_image(
     title: str | None = Body(None),
     description: str | None = Body(None),
     image_file: UploadFile = File(...),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
     minio_client: MinioClient = Depends(deps.minio_auth),
 ) -> IPostResponseBase[IUserRead]:
     """
@@ -361,7 +361,7 @@ async def upload_user_image(
     description: str | None = Body(None),
     image_file: UploadFile = File(...),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin])
+        deps.get_current_account(required_roles=[IRoleEnum.admin])
     ),
     minio_client: MinioClient = Depends(deps.minio_auth),
 ) -> IPostResponseBase[IUserRead]:

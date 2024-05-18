@@ -13,7 +13,8 @@ from app.api.v1.endpoints import (
     report,
     periodic_tasks,
     purchase,
-    image
+    image,
+    auth
 )
 
 api_router = APIRouter()
@@ -25,6 +26,8 @@ api_router.include_router(group.router, prefix="/group", tags=["group"])
 api_router.include_router(project.router, prefix="/project", tags=["project"])
 api_router.include_router(purchase.router, prefix="/purchase", tags=["purchase"])
 api_router.include_router(image.router, prefix="/image", tags=["image"])
+
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 # api_router.include_router(team.router, prefix="/team", tags=["team"])
 # api_router.include_router(hero.router, prefix="/hero", tags=["hero"])

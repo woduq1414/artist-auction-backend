@@ -93,6 +93,10 @@ locals {
     {
       name  = "WHEATER_URL"
       value = var.WHEATER_URL
+    },
+    {
+      name = "FRONTEND_URL"
+      value = var.FRONTEND_URL
     }
   ]  
 }

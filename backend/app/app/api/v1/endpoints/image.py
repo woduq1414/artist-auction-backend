@@ -77,7 +77,7 @@ async def upload_images(
     # title: str | None = Body(None),
     # description: str | None = Body(None),
     files: list[UploadFile] = File(...),
-    # current_user: User = Depends(deps.get_current_user()),
+    # current_user: User = Depends(deps.get_current_account()),
     minio_client: MinioClient = Depends(deps.minio_auth),
 ) -> IPostResponseBase[list[IImageMediaRead]]:
     """

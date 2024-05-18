@@ -2,6 +2,8 @@ from app.models.base_uuid_model import BaseUUIDModel
 from app.models.links_model import LinkGroupUser
 from app.models.links_model import LinkProjectUser
 from app.models.image_media_model import ImageMedia
+
+from app.models.artist_model import Artist
 from app.schemas.common_schema import IAccountTypeEnum, IGenderEnum
 from datetime import datetime
 from sqlmodel import BigInteger, Field, SQLModel, Relationship, Column, DateTime, String
@@ -30,4 +32,11 @@ class Account(BaseUUIDModel, AccountBase, table=True):
     social_id: str | None = Field(nullable=True)
     
     artist_id: UUID | None = Field(default=None, foreign_key="Artist.id", nullable=True)
+    
+    artist : Artist = Relationship(
+        sa_relationship_kwargs={
+            "lazy": "joined",
+            "primaryjoin": "Account.artist_id==Artist.id",
+        },
+    )
 

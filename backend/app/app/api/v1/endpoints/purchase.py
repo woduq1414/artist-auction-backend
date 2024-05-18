@@ -32,7 +32,7 @@ router = APIRouter()
 @router.get("")
 async def get_purchases(
     params: Params = Depends(),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[IPurchaseRead]:
     """
     Gets a paginated list of purchases
@@ -45,7 +45,7 @@ async def get_purchases(
 async def get_purchases_by_project_id(
     project_id : UUID,
     params: Params = Depends(),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[IPurchaseRead]:
     """
     Gets a paginated list of purchases by project_id
@@ -72,7 +72,7 @@ async def get_purchases_by_project_id(
 @router.get("/{purchase_id}")
 async def get_purchase_by_id(
     purchase_id: UUID,
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponseBase[IPurchaseReadWithUsers]:
     """
     Gets a purchase by its id
@@ -88,7 +88,7 @@ async def get_purchase_by_id(
 async def create_purchase(
     purchase: IPurchaseCreate,
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IPostResponseBase[IPurchaseRead]:
     """
@@ -111,7 +111,7 @@ async def update_purchase(
     purchase: IPurchaseUpdate,
     current_purchase: Purchase = Depends(purchase_deps.get_purchase_by_id),
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IPutResponseBase[IPurchaseRead]:
     """

@@ -60,11 +60,5 @@ class User(BaseUUIDModel, UserBase, table=True):
             "primaryjoin": "User.image_id==ImageMedia.id",
         }
     )
-    follower_count: int | None = Field(
-        sa_column=Column(BigInteger(), server_default="0")
-    )
-    following_count: int | None = Field(
-        sa_column=Column(BigInteger(), server_default="0")
-    )
-
+    
 

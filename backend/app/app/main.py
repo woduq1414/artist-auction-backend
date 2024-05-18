@@ -25,8 +25,8 @@ async def lifespan(app: FastAPI):
     # Startup
     
     # redis
-    # redis_client = await get_redis_client()
-    # FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
+    redis_client = await get_redis_client()
+    FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
     
     
     # Load a pre-trained sentiment analysis model as a dictionary to an easy cleanup
@@ -97,7 +97,7 @@ async def root():
     An example "Hello world" FastAPI route.
     """
     # if oso.is_allowed(user, "read", message):
-    return {"message": "Hello World~! " + str(datetime.datetime.now())}
+    return {"message": "Hello World~!! " + str(datetime.datetime.now())}
 
 
 

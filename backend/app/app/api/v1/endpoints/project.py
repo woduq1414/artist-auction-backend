@@ -32,7 +32,7 @@ router = APIRouter()
 @router.get("")
 async def get_projects(
     params: Params = Depends(),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[IProjectRead]:
     """
     Gets a paginated list of projects
@@ -44,7 +44,7 @@ async def get_projects(
 @router.get("/{project_id}")
 async def get_project_by_id(
     project_id: UUID,
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponseBase[IProjectReadWithUsers]:
     """
     Gets a project by its id
@@ -60,7 +60,7 @@ async def get_project_by_id(
 async def create_project(
     project: IProjectCreate,
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IPostResponseBase[IProjectRead]:
     """
@@ -94,7 +94,7 @@ async def create_project(
 async def pre_content_to_pdf(
     project: Project = Depends(project_deps.get_project_by_id),
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IPostResponseBase[str]:
     """
@@ -124,7 +124,7 @@ async def update_project(
     project: IProjectUpdate,
     current_project: Project = Depends(project_deps.get_project_by_id),
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IPutResponseBase[IProjectRead]:
     """
@@ -134,7 +134,7 @@ async def update_project(
     - admin
     - manager
     """
-    print(project, "!!")
+
     if hasattr(project, "pre_content_json"):
         project.pre_content = json.dumps(project.pre_content_json)
 
@@ -151,7 +151,7 @@ async def add_user_into_a_project(
     user: User = Depends(user_deps.is_valid_user),
     project: Project = Depends(project_deps.get_project_by_id),
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IPostResponseBase[IProjectRead]:
     """
@@ -171,7 +171,7 @@ async def delete_user_into_a_project(
     user: User = Depends(user_deps.is_valid_user),
     project: Project = Depends(project_deps.get_project_by_id),
     current_user: User = Depends(
-        deps.get_current_user()
+        deps.get_current_account()
     ),
 ) -> IPostResponseBase[IProjectRead]:
     """

@@ -3,6 +3,7 @@ from app.models.user_model import UserBase
 from app.models.group_model import GroupBase
 from app.schemas.common_schema import ILoginTypeEnum
 from app.models.account_model import AccountBase
+
 from pydantic import BaseModel
 from uuid import UUID
 from enum import Enum
@@ -46,6 +47,7 @@ class IAccountUpdate(AccountBase):
 
 class IAccountRead(AccountBase):
     id: UUID
+
 
 
 

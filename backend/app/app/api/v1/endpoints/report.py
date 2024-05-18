@@ -32,7 +32,7 @@ async def export_users_list(
         ),
     ] = FileExtensionEnum.csv,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin])
+        deps.get_current_account(required_roles=[IRoleEnum.admin])
     ),
 ) -> StreamingResponse:
     """
@@ -77,7 +77,7 @@ async def export_heroes_list(
         description="This is the exported file format",
     ),
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin])
+        deps.get_current_account(required_roles=[IRoleEnum.admin])
     ),
 ) -> StreamingResponse:
     """

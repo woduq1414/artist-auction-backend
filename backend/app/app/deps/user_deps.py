@@ -23,6 +23,9 @@ async def user_exists(new_user: IUserCreate) -> IUserCreate:
     return new_user
 
 
+
+
+
 async def is_valid_user(
     user_id: Annotated[UUID, Path(title="The UUID id of the user")]
 ) -> IUserRead:
@@ -43,10 +46,8 @@ async def is_valid_user_id(
     return user_id
 
 
-async def is_valid_email(
-    email: str
-) -> str:
-    
+async def is_valid_email(email: str) -> str:
+
     user = await crud.user.get_by_email(email=email)
     if user:
         is_active = user.is_active
@@ -63,13 +64,9 @@ async def is_valid_email(
             #         status_code = status.HTTP_406_NOT_ACCEPTABLE
             #     )
 
-            
-
             return email
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Not a member email",
         )
-
-

@@ -31,7 +31,7 @@ router = APIRouter()
 @router.get("")
 async def get_teams_list(
     params: Params = Depends(),
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[ITeamRead]:
     """
     Gets a paginated list of teams
@@ -43,7 +43,7 @@ async def get_teams_list(
 @router.get("/{team_id}")
 async def get_team_by_id(
     team_id: UUID,
-    current_user: User = Depends(deps.get_current_user()),
+    current_user: User = Depends(deps.get_current_account()),
 ) -> IGetResponseBase[ITeamRead]:
     """
     Gets a team by its id
@@ -58,7 +58,7 @@ async def get_team_by_id(
 async def create_team(
     team: ITeamCreate,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPostResponseBase[ITeamRead]:
     """
@@ -80,7 +80,7 @@ async def update_team(
     team_id: UUID,
     new_team: ITeamUpdate,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IPostResponseBase[ITeamRead]:
     """
@@ -112,7 +112,7 @@ async def update_team(
 async def remove_team(
     team_id: UUID,
     current_user: User = Depends(
-        deps.get_current_user(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
+        deps.get_current_account(required_roles=[IRoleEnum.admin, IRoleEnum.manager])
     ),
 ) -> IDeleteResponseBase[ITeamRead]:
     """

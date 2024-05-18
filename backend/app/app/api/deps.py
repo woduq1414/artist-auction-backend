@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from app.models.account_model import Account
 from fastapi import Depends, HTTPException, status
 from app.utils.token import get_valid_tokens
 from app.utils.minio_client import MinioClient
@@ -46,52 +47,43 @@ async def get_general_meta() -> IMetaGeneral:
     return IMetaGeneral(roles=current_roles)
 
 
-def get_current_user(required_roles: list[str] = None) -> User:
-    async def current_user(
+def get_current_account(required_roles: list[str] = None) -> Account:
+    async def current_account(
         token: str = Depends(reusable_oauth2),
         redis_client: Redis = Depends(get_redis_client),
-    ) -> User:
-        print("!!!")
+    ) -> Account:
+
+
         try:
+            print(token)
             payload = jwt.decode(
                 token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
             )
-        except (jwt.JWTError, ValidationError):
+        except (jwt.JWTError, ValidationError) as e:
+            print(e)
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Could not validate credentials",
+                detail="Could not validate credentials1",
             )
-        user_id = payload["sub"]
+        account_id = payload["sub"]
+   
         valid_access_tokens = await get_valid_tokens(
-            redis_client, user_id, TokenType.ACCESS
+            redis_client, account_id, TokenType.ACCESS
         )
         if valid_access_tokens and token not in valid_access_tokens:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Could not validate credentials",
+                detail="Could not validate credentials2",
             )
-        user: User = await crud.user.get(id=user_id)
-        if not user:
+        account: Account = await crud.account.get(id=account_id)
+        if not account:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if not user.is_active:
-            raise HTTPException(status_code=400, detail="Inactive user")
+       
 
-        if required_roles:
-            is_valid_role = False
-            for role in required_roles:
-                if role == user.role.name:
-                    is_valid_role = True
+        return account
 
-            if not is_valid_role:
-                raise HTTPException(
-                    status_code=403,
-                    detail=f"""Role "{required_roles}" is required for this action""",
-                )
-
-        return user
-
-    return current_user
+    return current_account
 
 
 def minio_auth() -> MinioClient:
