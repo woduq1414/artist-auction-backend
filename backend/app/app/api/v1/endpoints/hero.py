@@ -23,7 +23,7 @@ from app.schemas.response_schema import (
     create_response,
 )
 from app.schemas.role_schema import IRoleEnum
-from app.core.authz import is_authorized
+# from app.core.authz import is_authorized
 
 router = APIRouter()
 
@@ -125,11 +125,11 @@ async def update_hero(
     current_hero = await crud.hero.get(id=hero_id)
     if not current_hero:
         raise IdNotFoundException(Hero, hero_id)
-    if not is_authorized(current_user, "read", current_hero):
-        raise HTTPException(
-            status_code=403,
-            detail="You are not Authorized to update this heroe because you did not created it",
-        )
+    # if not is_authorized(current_user, "read", current_hero):
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="You are not Authorized to update this heroe because you did not created it",
+    #     )
 
     heroe_updated = await crud.hero.update(obj_new=hero, obj_current=current_hero)
     return create_response(data=heroe_updated)
