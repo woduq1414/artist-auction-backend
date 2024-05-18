@@ -4,7 +4,7 @@
   
 }
 
-fastapi.{$EXT_ENDPOINT1}:88, fastapi.{$LOCAL_1}:88, fastapi.{$LOCAL_2}:88, :88 {
+fastapi.{$EXT_ENDPOINT1}:80, fastapi.{$LOCAL_1}:80, fastapi.{$LOCAL_2}:80, :80 {
   handle_path /static* {
     root * /code/static
     file_server
@@ -13,11 +13,11 @@ fastapi.{$EXT_ENDPOINT1}:88, fastapi.{$LOCAL_1}:88, fastapi.{$LOCAL_2}:88, :88 {
   reverse_proxy fastapi_server:8008
 }
 
-storage.{$EXT_ENDPOINT1}:88, storage.{$LOCAL_1}:88, storage.{$LOCAL_2}:88 {
+storage.{$EXT_ENDPOINT1}:80, storage.{$LOCAL_1}:80, storage.{$LOCAL_2}:80 {
   reverse_proxy minio_server:9000 
 }
 
-stash.{$EXT_ENDPOINT1}:88, stash.{$LOCAL_1}:88, stash.{$LOCAL_2}:88 {
+stash.{$EXT_ENDPOINT1}:80, stash.{$LOCAL_1}:80, stash.{$LOCAL_2}:80 {
   reverse_proxy minio_server:9090 
 }
 
