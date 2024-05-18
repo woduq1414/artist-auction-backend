@@ -16,7 +16,7 @@ api.artistauction.kro.kr:80 {
 }
 
 artistauction.kro.kr:80 {
-  reverse_proxy mystifying_noyce:3000
+  reverse_proxy frontend:3000
   #reverse_proxy 127.0.0.11:3000 
 }
 
