@@ -141,6 +141,7 @@ async def social_kakao_redirect(
             data = await auth_deps.get_token_by_account(
                 account=account, redis_client=redis_client
             )
+            print(account)
 
             response.set_cookie(
                 key="accessToken",
