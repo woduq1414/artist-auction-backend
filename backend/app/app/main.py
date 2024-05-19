@@ -97,7 +97,7 @@ async def root():
     An example "Hello world" FastAPI route.
     """
     # if oso.is_allowed(user, "read", message):
-    return {"message": "Hello World!!!! " + str(datetime.datetime.now()) + " " + settings.FRONTEND_URL}
+    return {"message": "Hello World~!!!! " + str(datetime.datetime.now()) + " " + settings.FRONTEND_URL}
 
 
 
