@@ -122,7 +122,7 @@ async def social_kakao_redirect(
         {
             "grant_type": "authorization_code",
             "client_id": "9a022bf07d96f5bd196f5223293c1f0e",
-            "redirect_uri": settings.BACKEND_URL+"/api/v1/auth/social/kakao",
+            "redirect_uri": settings.BACKEND_URL + "/api/v1/auth/social/kakao",
             "code": code,
         },
     )
@@ -142,7 +142,15 @@ async def social_kakao_redirect(
                 account=account, redis_client=redis_client
             )
 
-            response.set_cookie(key="accessToken", value=data.access_token)
+            response.set_cookie(
+                key="accessToken",
+                value=data.access_token,
+                domain=(
+                    "127.0.0.1"
+                    if ("127.0.0.1" in settings.BACKEND_URL)
+                    else ".artistauction.kro.kr"
+                ),
+            )
 
             return response
         else:
@@ -156,8 +164,11 @@ async def social_kakao_redirect(
                         {"loginType": "kakao", "accessToken": access_token}
                     ).encode("utf-8")
                 ).decode("utf-8"),
-                domain="127.0.0.1" if ("127.0.0.1" in settings.BACKEND_URL) else ".artistauction.kro.kr"
-                
+                domain=(
+                    "127.0.0.1"
+                    if ("127.0.0.1" in settings.BACKEND_URL)
+                    else ".artistauction.kro.kr"
+                ),
             )
             return response
 
