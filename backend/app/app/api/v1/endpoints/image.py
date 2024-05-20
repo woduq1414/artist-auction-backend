@@ -83,6 +83,7 @@ async def upload_images(
     # description: str | None = Body(None),
     files: list[UploadFile] = File(...),
     current_account: Account = Depends(deps.get_current_account()),
+    db_session = Depends(deps.get_db),
 
 ) -> IPostResponseBase[list[IImageMediaRead]]:
     """
@@ -123,10 +124,14 @@ async def upload_images(
                 width=image_modified.width,
                 file_format=image_modified.file_format,
             )
+            
+            db_session.add(image_media)
+
             result.append(image_media)
 
         except Exception as e:
             print(e)
             return Response("Internal server error", status_code=500)
+    await db_session.commit()
     return create_response(data=result) # type: ignore
 
