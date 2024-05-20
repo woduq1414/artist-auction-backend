@@ -46,8 +46,7 @@ async def login(
     if not user:
         raise HTTPException(
             status_code=400, detail="Email or Password incorrect | Not Kakao Registered")
-    elif not user.is_active:
-        raise HTTPException(status_code=400, detail="User is inactive")
+
 
     data = await create_login_token(redis_client=redis_client,  user=user)
 
@@ -178,31 +177,17 @@ async def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    user = await crud.user.authenticate(
-        email=form_data.username, password=form_data.password
-    )
+
+    user = await crud.account.authenticate(email=form_data.username, password=form_data.password)
+
+
     if not user:
         raise HTTPException(
-            status_code=400, detail="Incorrect email or password")
-    elif not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    access_token_expires = timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = security.create_access_token(
-        user.id, expires_delta=access_token_expires
-    )
-    valid_access_tokens = await get_valid_tokens(
-        redis_client, user.id, TokenType.ACCESS
-    )
-    if valid_access_tokens:
-        await add_token_to_redis(
-            redis_client,
-            user,
-            access_token,
-            TokenType.ACCESS,
-            settings.ACCESS_TOKEN_EXPIRE_MINUTES,
-        )
+            status_code=400, detail="Email or Password incorrect | Not Kakao Registered")
+
+
+    data = await create_login_token(redis_client=redis_client,  user=user)
     return {
-        "access_token": access_token,
+        "access_token": data.access_token,
         "token_type": "bearer",
     }

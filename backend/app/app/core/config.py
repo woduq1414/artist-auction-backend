@@ -98,6 +98,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ENCRYPT_KEY = secrets.token_urlsafe(32)
     BACKEND_CORS_ORIGINS: list[str] | list[AnyHttpUrl]
+    
+    CLOUDINARY_CLOUD_NAME : str
+    CLOUDINARY_API_KEY : str
+    CLOUDINARY_API_SECRET : str
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:

@@ -6,10 +6,14 @@ import uuid
 from app.models.image_media_model import ImageMedia
 from app.models.media_model import Media
 from app.schemas.image_media_schema import IImageMediaRead
+from app.models.account_model import Account
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated
 from uuid import UUID
+
+import cloudinary.uploader
+  
 
 from redis.asyncio import Redis
 from app.api.v1.endpoints.role import update_role
@@ -74,30 +78,43 @@ def generate_random_string(length: int = 6) -> str:
 
 @router.post("/")
 async def upload_images(
+    type : str | None = Query(None),
     # title: str | None = Body(None),
     # description: str | None = Body(None),
     files: list[UploadFile] = File(...),
-    # current_user: User = Depends(deps.get_current_account()),
-    minio_client: MinioClient = Depends(deps.minio_auth),
+    current_account: Account = Depends(deps.get_current_account()),
+
 ) -> IPostResponseBase[list[IImageMediaRead]]:
     """
     Uploads images
     """
 
     result = []
+    
+    account_id = current_account.id
+    
 
     for image_file in files:
  
         try:
             description = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             image_modified = modify_image(BytesIO(image_file.file.read()))
-            data_file = minio_client.put_object(
-                file_name= str(uuid.uuid4()) + "." + image_modified.file_format,
-                file_data=BytesIO(image_modified.file_data),
-                content_type=image_file.content_type,
-            )
+            
+            file_name = f"{account_id}:{str(uuid.uuid4())}"
+            file_data = BytesIO(image_modified.file_data)
+            content_type = image_file.content_type
+            
+            upload_result = cloudinary.uploader.upload(file_data, public_id=file_name, resource_type="image")
+            image_url = upload_result.get("secure_url")
+            # data_file = minio_client.put_object(
+            #     file_name= str(uuid.uuid4()) + "." + image_modified.file_format,
+            #     file_data=BytesIO(image_modified.file_data),
+            #     content_type=image_file.content_type,
+            # )
+            print(upload_result)
+            # return
             media = IMediaCreate(
-                title=image_file.filename, description=description, path=data_file.file_name
+                title=image_file.filename, description=description, path=image_url
             )
 
             image_media = ImageMedia(

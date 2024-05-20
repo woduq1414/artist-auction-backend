@@ -77,10 +77,12 @@ from app.core.config import Settings
 from app.models.user_model import User
 from app.models.account_model import Account
 from app.schemas.common_schema import TokenType
-from app.schemas.token_schema import Token
+from app.schemas.token_schema import Token, TokenRead
 from app.utils.token import add_token_to_redis, get_valid_tokens
 
 from app.core.config import settings
+
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 router = APIRouter()
@@ -236,3 +238,31 @@ async def login(
     # )
 
     return response
+
+
+@router.post("/access-token")
+async def login_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    redis_client: Redis = Depends(deps.get_redis_client),
+) -> TokenRead:
+    """
+    OAuth2 compatible token login, get an access token for future requests
+    """
+
+    account = await crud.account.authenticate(
+        email=form_data.username, password=form_data.password
+    )
+
+    if not account:
+        raise HTTPException(
+            status_code=400, detail="Email or Password incorrect | Not Kakao Registered"
+        )
+
+    data = await auth_deps.get_token_by_account(
+        account=account, redis_client=redis_client
+    )
+
+    return {
+        "access_token": data.access_token,
+        "token_type": "bearer",
+    }

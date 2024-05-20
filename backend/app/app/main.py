@@ -17,18 +17,19 @@ from fastapi.staticfiles import StaticFiles
 
 from fastapi.templating import Jinja2Templates
 
+import cloudinary
+
 import datetime
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    
+
     # redis
     redis_client = await get_redis_client()
     FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
-    
-    
+
     # Load a pre-trained sentiment analysis model as a dictionary to an easy cleanup
     # models: dict[str, Any] = {
     #     "sentiment_model": pipeline(
@@ -55,6 +56,13 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan,
 )
+
+cloudinary.config(
+    cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+    api_key=settings.CLOUDINARY_API_KEY,
+    api_secret=settings.CLOUDINARY_API_SECRET,
+)
+
 templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(
@@ -97,12 +105,12 @@ async def root():
     An example "Hello world" FastAPI route.
     """
     # if oso.is_allowed(user, "read", message):
-    return {"message": "Hello World~!!!! " + str(datetime.datetime.now()) + " " + settings.FRONTEND_URL}
-
-
-
-
-
+    return {
+        "message": "Hello World~!!!! "
+        + str(datetime.datetime.now())
+        + " "
+        + settings.FRONTEND_URL
+    }
 
 
 # Add Routers

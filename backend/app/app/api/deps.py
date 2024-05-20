@@ -18,7 +18,7 @@ from redis.asyncio import Redis
 
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+    tokenUrl=f"{settings.API_V1_STR}/auth/access-token"
 )
 
 
@@ -94,3 +94,5 @@ def minio_auth() -> MinioClient:
         minio_url=settings.MINIO_URL,
     )
     return minio_client
+
+

@@ -11,7 +11,7 @@ class IModifiedImageResponse(BaseModel):
     file_data: Any
 
 
-def modify_image(image: BytesIO):
+def modify_image(image: BytesIO, mode: str  = "default"):
     pil_image = Image.open(image)
     file_format = pil_image.format
 
