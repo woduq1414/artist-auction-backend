@@ -1,4 +1,3 @@
-
 import datetime
 import random
 import string
@@ -13,7 +12,7 @@ from typing import Annotated
 from uuid import UUID
 
 import cloudinary.uploader
-  
+
 
 from redis.asyncio import Redis
 from app.api.v1.endpoints.role import update_role
@@ -70,68 +69,36 @@ from sqlmodel import and_, select, col, or_, text
 
 router = APIRouter()
 
+
 def generate_random_string(length: int = 6) -> str:
-    return "".join(
-        random.choices(string.ascii_letters + string.digits, k=length)
-    )
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
 @router.post("/")
 async def upload_images(
-    type : str | None = Query(None),
+    type: str | None = Query(None),
     # title: str | None = Body(None),
     # description: str | None = Body(None),
+    to_db: bool = Query(True),
     files: list[UploadFile] = File(...),
+   
     current_account: Account = Depends(deps.get_current_account()),
-    db_session = Depends(deps.get_db),
-
+    db_session=Depends(deps.get_db),
 ) -> IPostResponseBase[list[IImageMediaRead]]:
     """
     Uploads images
     """
 
-    result = []
-    
+
     account_id = current_account.id
+
+
+
+    result = await crud.image.upload_images(
+        image_list=files, account_id=account_id, db_session=db_session, to_db = to_db
+    )
     
+    print(result)
 
-    for image_file in files:
- 
-        try:
-            description = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            image_modified = modify_image(BytesIO(image_file.file.read()))
-            
-            file_name = f"{account_id}:{str(uuid.uuid4())}"
-            file_data = BytesIO(image_modified.file_data)
-            content_type = image_file.content_type
-            
-            upload_result = cloudinary.uploader.upload(file_data, public_id=file_name, resource_type="image")
-            image_url = upload_result.get("secure_url")
-            # data_file = minio_client.put_object(
-            #     file_name= str(uuid.uuid4()) + "." + image_modified.file_format,
-            #     file_data=BytesIO(image_modified.file_data),
-            #     content_type=image_file.content_type,
-            # )
-            print(upload_result)
-            # return
-            media = IMediaCreate(
-                title=image_file.filename, description=description, path=image_url
-            )
 
-            image_media = ImageMedia(
-                media=Media.from_orm(media),
-                height=image_modified.height,
-                width=image_modified.width,
-                file_format=image_modified.file_format,
-            )
-            
-            db_session.add(image_media)
-
-            result.append(image_media)
-
-        except Exception as e:
-            print(e)
-            return Response("Internal server error", status_code=500)
-    await db_session.commit()
-    return create_response(data=result) # type: ignore
-
+    return create_response(data=result)  # type: ignore
