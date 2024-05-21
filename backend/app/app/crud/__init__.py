@@ -9,4 +9,6 @@ from .project_crud import project
 
 from .artist_crud import artist
 from .account_crud import account
+
+from .artist_goods_crud import artist_goods
 # from .purchase_crud import purchase

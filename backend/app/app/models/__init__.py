@@ -10,3 +10,4 @@ from .project_model import Project
 from .purchase_model import Purchase
 from .account_model import Account
 from .artist_model import Artist
+from .artist_goods_model import ArtistGoods

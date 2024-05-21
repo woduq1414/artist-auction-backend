@@ -168,26 +168,3 @@ async def get_new_access_token(
     else:
         raise HTTPException(status_code=404, detail="Incorrect token")
 
-
-@router.post("/access-token")
-async def login_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    redis_client: Redis = Depends(get_redis_client),
-) -> TokenRead:
-    """
-    OAuth2 compatible token login, get an access token for future requests
-    """
-
-    user = await crud.account.authenticate(email=form_data.username, password=form_data.password)
-
-
-    if not user:
-        raise HTTPException(
-            status_code=400, detail="Email or Password incorrect | Not Kakao Registered")
-
-
-    data = await create_login_token(redis_client=redis_client,  user=user)
-    return {
-        "access_token": data.access_token,
-        "token_type": "bearer",
-    }

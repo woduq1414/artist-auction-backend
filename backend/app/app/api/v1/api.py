@@ -14,7 +14,8 @@ from app.api.v1.endpoints import (
     periodic_tasks,
     purchase,
     image,
-    auth
+    auth,
+    artist
 )
 
 api_router = APIRouter()
@@ -28,6 +29,7 @@ api_router.include_router(purchase.router, prefix="/purchase", tags=["purchase"]
 api_router.include_router(image.router, prefix="/image", tags=["image"])
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(artist.router, prefix="/artist", tags=["artist"])
 
 # api_router.include_router(team.router, prefix="/team", tags=["team"])
 # api_router.include_router(hero.router, prefix="/hero", tags=["hero"])
