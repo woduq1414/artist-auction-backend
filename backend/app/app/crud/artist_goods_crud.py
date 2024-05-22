@@ -1,3 +1,4 @@
+import json
 from app.schemas.media_schema import IMediaCreate
 from app.schemas.artist_schema import IArtistCreate, IArtistUpdate
 from app.schemas.artist_goods_schema import IArtistGoodsCreate, IArtistGoodsUpdate
@@ -23,7 +24,8 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
 
 
     async def create(
-        self, *, obj_in: IArtistGoodsCreate, db_session: AsyncSession | None = None
+        self, *, obj_in: IArtistGoodsCreate, artist_id : UUID,
+        db_session: AsyncSession | None = None
     ) -> Artist:
         db_session = db_session or super().get_db().session
         new_artist_goods = ArtistGoods(
@@ -37,6 +39,8 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
         )
         new_artist_goods.main_image_id = obj_in.main_image
         
+        new_artist_goods.artist_id = artist_id
+        
         example_image_url_list = []
         print(obj_in.example_image_list)
         for example_image_id in obj_in.example_image_list:
@@ -46,7 +50,7 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
         
         print(example_image_url_list)
         
-        new_artist_goods.example_image_url_list = str(example_image_url_list)
+        new_artist_goods.example_image_url_list = json.dumps(example_image_url_list)
         
 
     

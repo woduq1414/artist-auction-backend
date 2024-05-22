@@ -47,7 +47,8 @@ class IArtistRead(ArtistBase):
     id: UUID
     
     
-class IArtistInfoRead(AccountBase):
+class IArtistInfoRead(SQLModel):
+    id: UUID
     nickname: str
     profile_image: IImageMediaRead | None
 
