@@ -11,7 +11,8 @@ import base64
 
 class IArtistGoodsCreate(ArtistGoodsBase):
 
-    pass
+    main_image : UUID
+    example_image_list : list[UUID]
 
     
 

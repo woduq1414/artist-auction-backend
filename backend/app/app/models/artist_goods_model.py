@@ -24,7 +24,9 @@ class ArtistGoodsBase(SQLModel):
     
     content : str = Field(nullable=False)
 
-    end_date : datetime | None = Field(nullable = False, )
+    end_date : datetime | None = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=True)
+    ) 
 
  
 

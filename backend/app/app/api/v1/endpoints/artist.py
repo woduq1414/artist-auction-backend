@@ -85,9 +85,10 @@ async def create_artist_goods(
     """
     
     print(new_artist_goods)
-
     
-    # artist_goods = await crud.artist_goods.create(new_artist_goods=new_artist_goods)
-    # return create_response(data=artist_goods)
+    artist_goods = await crud.artist_goods.create(obj_in=new_artist_goods)
+    
+    
+    return create_response(data=artist_goods)
 
 

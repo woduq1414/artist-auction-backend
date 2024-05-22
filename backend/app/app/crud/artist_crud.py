@@ -92,6 +92,6 @@ class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
     #     await db_session.delete(obj)
     #     await db_session.commit()
     #     return obj
-
+ 
 
 artist = CRUDArtist(Artist)

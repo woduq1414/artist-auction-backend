@@ -2,6 +2,7 @@ from app.models.image_media_model import ImageMediaBase
 from .media_schema import IMediaRead
 from app.utils.partial import optional
 
+from uuid import UUID
 
 # Image Media
 class IImageMediaCreate(ImageMediaBase):
@@ -15,4 +16,5 @@ class IImageMediaUpdate(ImageMediaBase):
 
 
 class IImageMediaRead(ImageMediaBase):
+    id : UUID 
     media: IMediaRead | None

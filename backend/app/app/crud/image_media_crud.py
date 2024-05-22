@@ -10,7 +10,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 import datetime
 import cloudinary.uploader
 from app.utils.resize_image import modify_image
-
+from sqlmodel import select
 
 class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate]):
     async def upload_images(
@@ -53,6 +53,15 @@ class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate])
             
         await db_session.commit()
         return result
+    
+    async def get_image_media_by_id(
+        self, *, id: uuid.UUID, db_session: AsyncSession | None = None
+    ) -> ImageMedia | None:
+        db_session = db_session or super().get_db().session
+        
+        image_media = await db_session.execute(select(ImageMedia).where(ImageMedia.id == id))
+        
+        return image_media.scalar_one_or_none()
 
 
 image = CRUDImageMedia(ImageMedia)

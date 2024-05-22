@@ -6,6 +6,7 @@ from app.models.artist_model import Artist
 from app.models.media_model import Media
 from app.models.image_media_model import ImageMedia
 from app.core.security import verify_password, get_password_hash
+from app import crud
 from pydantic.networks import EmailStr
 from typing import Any
 from app.crud.base_crud import CRUDBase
@@ -22,14 +23,38 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
 
 
     async def create(
-        self, *, obj_in: IArtistCreate, db_session: AsyncSession | None = None
+        self, *, obj_in: IArtistGoodsCreate, db_session: AsyncSession | None = None
     ) -> Artist:
         db_session = db_session or super().get_db().session
-        db_obj = Artist.from_orm(obj_in)
-        db_session.add(db_obj)
+        new_artist_goods = ArtistGoods(
+            title=obj_in.title,
+            description=obj_in.description,
+            category=obj_in.category,
+            price=obj_in.price,
+            content=obj_in.content,
+            end_date=obj_in.end_date,
+            status='pending',
+        )
+        new_artist_goods.main_image_id = obj_in.main_image
+        
+        example_image_url_list = []
+        print(obj_in.example_image_list)
+        for example_image_id in obj_in.example_image_list:
+            image = await crud.image.get_image_media_by_id(id = example_image_id)
+            if image:
+                example_image_url_list.append(image.media.path)    
+        
+        print(example_image_url_list)
+        
+        new_artist_goods.example_image_url_list = str(example_image_url_list)
+        
+
+    
+        
+        db_session.add(new_artist_goods)
         await db_session.commit()
-        await db_session.refresh(db_obj)
-        return db_obj
+        await db_session.refresh(new_artist_goods)
+        return new_artist_goods
     
     
 
