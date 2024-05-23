@@ -32,10 +32,11 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
             title=obj_in.title,
             description=obj_in.description,
             category=obj_in.category,
-            price=obj_in.price,
+            price=obj_in.price * 10000,
             content=obj_in.content,
             end_date=obj_in.end_date,
             status='pending',
+            max_price = obj_in.price * 10000
         )
         new_artist_goods.main_image_id = obj_in.main_image
         

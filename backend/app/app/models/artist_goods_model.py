@@ -19,6 +19,7 @@ class ArtistGoodsBase(SQLModel):
     
     category : str = Field(nullable=False)
     price : int = Field(nullable=False)
+
     
 
     
@@ -34,6 +35,7 @@ class ArtistGoodsBase(SQLModel):
 
 
 class ArtistGoods(BaseUUIDModel, ArtistGoodsBase, table=True):
+    max_price : int = Field(nullable=True)
     status : str = Field(nullable=False)
     artist_id: UUID | None = Field(default=None, foreign_key="Artist.id")
     artist: Artist = Relationship(

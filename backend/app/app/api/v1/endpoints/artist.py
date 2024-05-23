@@ -1,5 +1,5 @@
 import json
-from app.schemas.artist_goods_schema import IArtistGoodsCreate, IArtistGoodsRead
+from app.schemas.artist_goods_schema import IArtistGoodsCreate, IArtistGoodsListRead, IArtistGoodsRead
 from app.models.account_model import Account
 from app.schemas.artist_schema import IArtistRead
 from fastapi import HTTPException
@@ -75,12 +75,16 @@ class Base(BaseModel):
 @router.get("/goods")
 async def get_artist_goods_list(
     params: Params = Depends(),
-
-) -> IGetResponsePaginated[IArtistGoodsRead]:
+    category: Optional[str] = Query(None),
+) -> IGetResponsePaginated[IArtistGoodsListRead]:
     """
     Gets a paginated list of projects
     """
-    artist_goods_list = await crud.artist_goods.get_multi_paginated(params=params)
+    query = None
+    if category:
+        query = select(crud.artist_goods.model).where(crud.artist_goods.model.category == category)
+    
+    artist_goods_list = await crud.artist_goods.get_multi_paginated(params=params, query=query)
     
     for artist_goods in artist_goods_list.data.items:
         artist_goods.example_image_url_list = json.loads(artist_goods.example_image_url_list)
