@@ -78,13 +78,32 @@ class Base(BaseModel):
 async def get_artist_goods_list(
     params: Params = Depends(),
     category: Optional[str] = Query(None),
+    sort : Optional[str] = Query(None),
 ) -> IGetResponsePaginated[IArtistGoodsListRead]:
     """
     Gets a paginated list of projects
     """
+    time.sleep(1)
     query = None
+    
     if category:
         query = select(crud.artist_goods.model).where(crud.artist_goods.model.category == category)
+    else:
+        query = select(crud.artist_goods.model)
+        
+    available_sort = ["recent", "highPrice", "lowPrice", "end_date"]
+    
+    if sort:
+        if sort in available_sort:
+            if sort == "recent":
+                query = query.order_by(crud.artist_goods.model.created_at.desc())
+            elif sort == "highPrice":
+                query = query.order_by(crud.artist_goods.model.price.desc())
+            elif sort == "lowPrice":
+                query = query.order_by(crud.artist_goods.model.price.asc())
+            elif sort == "end_date":
+                query = query.order_by(crud.artist_goods.model.end_date.asc())
+        
     
     artist_goods_list = await crud.artist_goods.get_multi_paginated(params=params, query=query)
     
@@ -133,7 +152,7 @@ async def get_artist_goods_by_id(
     """
     Gets a project by its id
     """
-    time.sleep(3)
+    time.sleep(1)
     artist_goods = await crud.artist_goods.get(id=artist_goods_id)
     
     if artist_goods:

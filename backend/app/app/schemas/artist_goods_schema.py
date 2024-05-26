@@ -32,7 +32,7 @@ class IArtistGoodsRead(ArtistGoodsBase):
         super().__init__(**data)
         
         self.example_image_url_list = json.loads(self.example_image_url_list)
-        print("!@#")
+
 
 class IArtistGoodsListRead(SQLModel):
     
