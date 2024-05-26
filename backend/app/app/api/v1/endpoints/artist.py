@@ -1,7 +1,9 @@
 import json
+import time
 from app.schemas.artist_goods_schema import IArtistGoodsCreate, IArtistGoodsListRead, IArtistGoodsRead
 from app.models.account_model import Account
 from app.schemas.artist_schema import IArtistRead
+from app.models.artist_goods_model import ArtistGoods
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Optional
@@ -89,6 +91,7 @@ async def get_artist_goods_list(
     for artist_goods in artist_goods_list.data.items:
         artist_goods.example_image_url_list = json.loads(artist_goods.example_image_url_list)
     
+    # time.sleep(5)
     
     
     print(artist_goods_list)
@@ -122,3 +125,19 @@ async def create_artist_goods(
     return create_response(data=artist_goods)
 
 
+@router.get("/goods/{artist_goods_id}")
+async def get_artist_goods_by_id(
+    artist_goods_id: UUID,
+
+) -> IPostResponseBase[IArtistGoodsRead]:
+    """
+    Gets a project by its id
+    """
+    time.sleep(3)
+    artist_goods = await crud.artist_goods.get(id=artist_goods_id)
+    
+    if artist_goods:
+        artist_goods.example_image_url_list = json.loads(artist_goods.example_image_url_list)
+        return create_response(data=artist_goods)
+    else:
+        raise IdNotFoundException(ArtistGoods, artist_goods_id)

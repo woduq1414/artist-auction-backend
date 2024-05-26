@@ -36,6 +36,7 @@ class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
         return db_obj
     
     
+    
 
 
 

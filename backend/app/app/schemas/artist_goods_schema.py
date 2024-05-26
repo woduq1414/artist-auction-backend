@@ -26,6 +26,13 @@ class IArtistGoodsRead(ArtistGoodsBase):
     example_image_url_list : str | list[str]
     artist: IArtistInfoRead
     max_price : int
+    image : IImageMediaRead
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        
+        self.example_image_url_list = json.loads(self.example_image_url_list)
+        print("!@#")
 
 class IArtistGoodsListRead(SQLModel):
     
