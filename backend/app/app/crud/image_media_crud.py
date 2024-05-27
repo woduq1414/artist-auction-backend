@@ -6,12 +6,13 @@ from app.models.image_media_model import ImageMedia
 from app.schemas.image_media_schema import IImageMediaCreate, IImageMediaUpdate
 from app.models.media_model import Media
 from app.schemas.media_schema import IMediaCreate
+
 from sqlmodel.ext.asyncio.session import AsyncSession
 import datetime
 import cloudinary.uploader
 from app.utils.resize_image import modify_image
 from sqlmodel import select
-
+from app.core.config import settings
 
 class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate]):
     async def upload_images(
@@ -21,6 +22,7 @@ class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate])
         account_id: uuid.UUID,
         db_session: AsyncSession | None = None,
         to_db: bool = True,
+        type : str = "default"
     ) -> list[ImageMedia]:
         
   
@@ -36,6 +38,7 @@ class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate])
 
                 upload_result = cloudinary.uploader.upload(
                     file_data, public_id=file_name, resource_type="image",
+                    folder = settings.ENVIRONMENT
                     
                 )
 

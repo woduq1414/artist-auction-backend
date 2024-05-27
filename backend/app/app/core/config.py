@@ -102,6 +102,8 @@ class Settings(BaseSettings):
     CLOUDINARY_CLOUD_NAME : str
     CLOUDINARY_API_KEY : str
     CLOUDINARY_API_SECRET : str
+    
+    ENVIRONMENT : str
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
