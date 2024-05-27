@@ -79,6 +79,7 @@ async def get_artist_goods_list(
     params: Params = Depends(),
     category: Optional[str] = Query(None),
     sort : Optional[str] = Query(None),
+    search : Optional[str] = Query(None),
 ) -> IGetResponsePaginated[IArtistGoodsListRead]:
     """
     Gets a paginated list of projects
@@ -90,6 +91,11 @@ async def get_artist_goods_list(
         query = select(crud.artist_goods.model).where(crud.artist_goods.model.category == category)
     else:
         query = select(crud.artist_goods.model)
+        
+    if search:
+        # query by title and description
+        query = query.where(or_(crud.artist_goods.model.title.ilike(f"%{search}%"), crud.artist_goods.model.description.ilike(f"%{search}%")))
+    
         
     available_sort = ["recent", "highPrice", "lowPrice", "end_date"]
     
