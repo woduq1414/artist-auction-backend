@@ -15,7 +15,7 @@ from app.crud.user_follow_crud import user_follow as UserFollowCRUD
 from sqlmodel import select
 from uuid import UUID
 from sqlmodel.ext.asyncio.session import AsyncSession
-
+import datetime
 from app.utils.login import verify_kakao_access_token
 
 
@@ -28,14 +28,29 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
         db_session: AsyncSession | None = None
     ) -> Artist:
         db_session = db_session or super().get_db().session
+        
+        
+        # 원래는 검수 후 start_date, end_date가 설정.
+        
+        # start_date는 오늘 날짜 자정으로
+        obj_in.start_date = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # end_date는 start_date에서 duration을 더한 시간으로
+        obj_in.end_date = obj_in.start_date + datetime.timedelta(days=obj_in.duration)
+        
+        
+        
         new_artist_goods = ArtistGoods(
             title=obj_in.title,
             description=obj_in.description,
             category=obj_in.category,
             price=obj_in.price * 10000,
             content=obj_in.content,
+            duration=obj_in.duration,
+            start_date=obj_in.start_date,
             end_date=obj_in.end_date,
-            status='pending',
+            # status='pending',
+            status='start',
             max_price = obj_in.price * 10000
         )
         new_artist_goods.main_image_id = obj_in.main_image

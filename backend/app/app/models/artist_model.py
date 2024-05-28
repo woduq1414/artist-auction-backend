@@ -23,6 +23,7 @@ class ArtistBase(SQLModel):
     gender: IGenderEnum | None = Field(default=None, nullable=False)
     favorite_category: str | None = Field(default=None, nullable=False)
     
+    description : str = Field(nullable=True)
    
     
     

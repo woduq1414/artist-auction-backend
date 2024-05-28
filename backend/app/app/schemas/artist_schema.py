@@ -51,6 +51,7 @@ class IArtistInfoRead(SQLModel):
     id: UUID
     nickname: str
     profile_image: IImageMediaRead | None
+    description: str | None
 
 
 

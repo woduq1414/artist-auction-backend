@@ -48,7 +48,9 @@ class IArtistGoodsListRead(SQLModel):
     price : int
     max_price : int
 
+    start_date : datetime | None
     end_date : datetime | None 
+    duration : int | None
     
     image : IImageMediaRead
 
