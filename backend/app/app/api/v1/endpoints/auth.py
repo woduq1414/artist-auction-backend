@@ -266,3 +266,14 @@ async def login_access_token(
         "access_token": data.access_token,
         "token_type": "bearer",
     }
+
+
+@router.get("/check-email")
+async def check_email(email: str = Query(...)) -> IGetResponseBase[None]:
+    """
+    Check if email exists
+    """
+
+    await auth_deps.email_exists(email)
+
+    return create_response(data=None)

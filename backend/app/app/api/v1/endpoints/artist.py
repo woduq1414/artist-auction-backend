@@ -63,7 +63,7 @@ from app.schemas.user_follow_schema import (
 from fastapi_pagination import Params
 from sqlmodel import and_, select, col, or_, text
 from pydantic import BaseModel, ValidationError
-
+from app.deps import user_deps, role_deps, auth_deps
 
 router = APIRouter()
 
@@ -166,3 +166,14 @@ async def get_artist_goods_by_id(
         return create_response(data=artist_goods)
     else:
         raise IdNotFoundException(ArtistGoods, artist_goods_id)
+
+
+@router.get("/check-nickname")
+async def check_artist_nickname(nickname: str = Query(...)) -> IGetResponseBase[None]:
+    """
+    Check if nickname exists
+    """
+
+    await auth_deps.artist_nickname_exists(nickname)
+    
+    return create_response(data=None)

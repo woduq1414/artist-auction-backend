@@ -45,6 +45,17 @@ async def email_exists(email: str) -> str:
 
     return email
 
+async def artist_nickname_exists(nickname: str) -> str:
+    artist = await crud.artist.get_artist_by_nickname(nickname=nickname)
+    if artist:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="There is already a user with same nickname",
+        )
+
+    return artist
+
+
 
 async def social_id_exists(social_id: str) -> str:
     user = await crud.account.get_by_social_id(social_id=social_id)
