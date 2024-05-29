@@ -79,7 +79,7 @@ from app.models.account_model import Account
 from app.schemas.common_schema import TokenType
 from app.schemas.token_schema import Token, TokenRead
 from app.utils.token import add_token_to_redis, get_valid_tokens
-
+from app.deps import user_deps, role_deps, auth_deps
 from app.core.config import settings
 
 from fastapi.security import OAuth2PasswordRequestForm
@@ -186,6 +186,7 @@ async def register_user(
     """
 
     await auth_deps.email_exists(register_data.email)
+    await auth_deps.artist_nickname_exists(register_data.nickname)
 
     if register_data.login_type != ILoginTypeEnum.password:
         await auth_deps.social_id_exists(register_data.social_id)
@@ -277,3 +278,5 @@ async def check_email(email: str = Query(...)) -> IGetResponseBase[None]:
     await auth_deps.email_exists(email)
 
     return create_response(data=None)
+
+

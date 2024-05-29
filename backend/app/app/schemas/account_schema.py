@@ -10,6 +10,10 @@ from enum import Enum
 from .image_media_schema import IImageMediaRead
 from .role_schema import IRoleRead
 from sqlmodel import SQLModel
+from pydantic import validator
+
+import re
+
 
 class IAccountCreate(AccountBase):
     
@@ -22,6 +26,22 @@ class IAccountCreate(AccountBase):
     password: str | None
     social_id: str | None
     artist_id: UUID | None = None
+    
+    @validator("password")
+    def check_password(cls, value) -> str | None:
+        print(cls ,value)
+        if value is None:
+            return value
+        
+        
+        passwordReg = r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$"
+        
+        if not re.match(passwordReg, value):
+            raise ValueError("Password should have at least one number, one special character, one alphabet character")
+        
+        
+        
+        return value
     
     
     
