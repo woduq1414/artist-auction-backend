@@ -11,11 +11,37 @@ from datetime import datetime
 import base64
 from sqlmodel import BigInteger, Field, SQLModel
 
+from pydantic import validator
 
 class IArtistGoodsCreate(ArtistGoodsBase):
 
     main_image : UUID
     example_image_list : list[UUID]
+    
+    @validator("title")
+    def check_title(cls, value) -> str:
+        if len(value) > 20:
+            raise ValueError("Title should be under 20 characters")
+        return value
+    
+    @validator("description")
+    def check_description(cls, value) -> str:
+        if len(value) > 40:
+            raise ValueError("Description should be under 40 characters")
+        return value
+    
+    @validator("duration")
+    def check_duration(cls, value) -> int:
+        if not (1 <= value <= 14):
+            raise ValueError("Duration should be between 1 and 14")
+        return value
+    
+    
+    @validator("price")
+    def check_price(cls, value) -> int:
+        if not (1 <= value <= 9999):
+            raise ValueError("Price should be between 1 and 9999")
+        return value
 
     
 
