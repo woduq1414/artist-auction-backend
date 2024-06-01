@@ -81,6 +81,7 @@ class IArtistUpdate(UserBase):
 
 
 class IArtistRead(ArtistBase):
+    profile_image_id: UUID | None 
     id: UUID
 
 

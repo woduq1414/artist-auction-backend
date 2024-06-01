@@ -32,7 +32,7 @@ class ArtistGoodsBase(SQLModel):
         sa_column=Column(DateTime(timezone=True), nullable=True)
     ) 
     
-    duration : int = Field(nullable=True)
+    duration : int | None = Field(nullable=True)
 
  
 

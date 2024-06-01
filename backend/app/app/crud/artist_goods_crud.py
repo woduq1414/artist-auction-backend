@@ -21,7 +21,14 @@ from app.utils.login import verify_kakao_access_token
 
 class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpdate]):
 
-
+    async def get_artist_goods_list_by_artist_id(
+        self, *, artist_id: UUID, db_session: AsyncSession | None = None
+    ) -> list[ArtistGoods] | None:
+        db_session = db_session or super().get_db().session
+        artist_goods = await db_session.execute(select(ArtistGoods).where(ArtistGoods.artist_id == artist_id))
+        return artist_goods.scalars().all()
+    
+    
 
     async def create(
         self, *, obj_in: IArtistGoodsCreate, artist_id : UUID,

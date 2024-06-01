@@ -37,6 +37,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+
+
+
 async def get_jobs_db() -> AsyncGenerator[AsyncSession, None]:
     async with SessionLocalCelery() as session:
         yield session
@@ -51,8 +54,9 @@ def get_current_account(required_roles: list[str] = None) -> Account:
     async def current_account(
         token: str = Depends(reusable_oauth2),
         redis_client: Redis = Depends(get_redis_client),
+        db_session : AsyncSession = Depends(get_db),
     ) -> Account:
-
+        db_session = db_session or SessionLocal()
 
         try:
             print(token)
@@ -75,7 +79,7 @@ def get_current_account(required_roles: list[str] = None) -> Account:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Could not validate credentials2",
             )
-        account: Account = await crud.account.get(id=account_id)
+        account: Account = await crud.account.get(id=account_id, db_session=db_session)
         if not account:
             raise HTTPException(status_code=404, detail="User not found")
 

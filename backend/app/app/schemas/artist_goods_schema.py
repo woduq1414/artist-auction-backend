@@ -53,11 +53,7 @@ class IArtistGoodsRead(ArtistGoodsBase):
     artist: IArtistInfoRead
     max_price : int
     image : IImageMediaRead
-    
-    def __init__(self, **data):
-        super().__init__(**data)
-        
-        self.example_image_url_list = json.loads(self.example_image_url_list)
+
 
 
 class IArtistGoodsListRead(SQLModel):
@@ -79,6 +75,13 @@ class IArtistGoodsListRead(SQLModel):
     duration : int | None
     
     image : IImageMediaRead
+    
+    created_at : datetime
+    
+    # @validator("example_image_url_list")
+    # def example_image_url_list_to_list(cls, value):
+    #     print(json.loads(value) , value, type(value))
+    #     return value
 
 
 @optional

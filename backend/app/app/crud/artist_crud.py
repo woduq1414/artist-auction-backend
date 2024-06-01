@@ -42,26 +42,20 @@ class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
 
  
 
-    # async def update_photo(
-    #     self,
-    #     *,
-    #     user: User,
-    #     image: IMediaCreate,
-    #     heigth: int,
-    #     width: int,
-    #     file_format: str,
-    # ) -> User:
-    #     db_session = super().get_db().session
-    #     user.image = ImageMedia(
-    #         media=Media.from_orm(image),
-    #         height=heigth,
-    #         width=width,
-    #         file_format=file_format,
-    #     )
-    #     db_session.add(user)
-    #     await db_session.commit()
-    #     await db_session.refresh(user)
-    #     return user
+    async def update_photo(
+        self,
+        *,
+        artist : Artist,
+        image_media : ImageMedia,
+        db_session: AsyncSession | None = None
+    ) -> Artist:
+        db_session = db_session or super().get_db().session
+        print(db_session)
+        artist.profile_image = image_media
+        db_session.add(artist)
+        await db_session.commit()
+        await db_session.refresh(artist)
+        return artist
 
     # async def remove(
     #     self, *, id: UUID | str, db_session: AsyncSession | None = None

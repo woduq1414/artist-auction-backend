@@ -26,8 +26,9 @@ class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate])
     ) -> list[ImageMedia]:
         
   
-      
-        db_session = db_session or super().get_db().session
+        if to_db is True:
+            db_session = db_session or super().get_db().session
+        print(db_session)
         result = []
         for image_file in image_list:
             try:
@@ -65,7 +66,9 @@ class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate])
             except Exception as e:
                 print(e)
 
-        await db_session.commit()
+        if to_db is True:
+            await db_session.commit()
+
         return result
 
     async def get_image_media_by_id(

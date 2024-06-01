@@ -7,6 +7,7 @@ from app import api
 from typing import Any
 from uuid import UUID
 
+from sqlmodel import Field, SQLModel
 
 class IMediaCreate(MediaBase):
     pass
@@ -18,7 +19,8 @@ class IMediaUpdate(MediaBase):
     pass
 
 
-class IMediaRead(MediaBase):
+class IMediaRead(SQLModel):
     id: UUID | str
     link: str | None = None
+    path: str | None
     
