@@ -78,7 +78,7 @@ async def get_token_by_account(account: Account, redis_client: Redis):
     paylaod_data = {
         "id": str(account.id),
         "nickname" : account.artist.nickname,
-        "profileImage" : account.artist.profile_image.media.path,
+        "profileImage" : account.artist.profile_image.media.path if account.artist.profile_image else None,
     }
     access_token = security.create_access_token(
         paylaod_data, expires_delta=access_token_expires
