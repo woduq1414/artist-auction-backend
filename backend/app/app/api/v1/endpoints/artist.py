@@ -267,7 +267,7 @@ async def get_artist_goods_by_id(
     """
     Gets a project by its id
     """
-    time.sleep(1)
+    # time.sleep(1)
 
     artist_goods = await crud.artist_goods.get(id=artist_goods_id)
     if artist_goods:

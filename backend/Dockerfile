@@ -9,6 +9,10 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false
 
+RUN apt install tzdata
+ENV TZ=Asia/Seoul
+RUN cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+
 # Copy poetry.lock* in case it doesn't exist in the repo
 COPY app/pyproject.toml app/poetry.lock* /code/
 
