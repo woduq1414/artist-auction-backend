@@ -18,7 +18,8 @@ from redis.asyncio import Redis
 
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/access-token"
+    tokenUrl=f"{settings.API_V1_STR}/auth/access-token",
+   auto_error=False
 )
 
 
@@ -37,9 +38,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-
-
-
 async def get_jobs_db() -> AsyncGenerator[AsyncSession, None]:
     async with SessionLocalCelery() as session:
         yield session
@@ -50,12 +48,25 @@ async def get_general_meta() -> IMetaGeneral:
     return IMetaGeneral(roles=current_roles)
 
 
-def get_current_account(required_roles: list[str] = None) -> Account:
+def get_current_account(
+    required_roles: list[str] = None, is_login_required: bool = True
+) -> Account | None:
     async def current_account(
-        token: str = Depends(reusable_oauth2),
+        token = Depends(reusable_oauth2),
         redis_client: Redis = Depends(get_redis_client),
-        db_session : AsyncSession = Depends(get_db),
-    ) -> Account:
+        db_session: AsyncSession = Depends(get_db),
+    ) -> Account | None:
+
+        if not token:
+            if is_login_required:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Could not validate credentials",
+                )
+            else:
+                return None
+     
+        
         db_session = db_session or SessionLocal()
 
         try:
@@ -65,25 +76,31 @@ def get_current_account(required_roles: list[str] = None) -> Account:
             )
         except (jwt.JWTError, ValidationError) as e:
             print(e)
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Could not validate credentials1",
-            )
+            
+            if is_login_required:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Could not validate credentials1",
+                )
+            else:
+                return None
         account_id = payload["sub"]
-   
+
         valid_access_tokens = await get_valid_tokens(
             redis_client, account_id, TokenType.ACCESS
         )
         if valid_access_tokens and token not in valid_access_tokens:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Could not validate credentials2",
-            )
+            if is_login_required:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Could not validate credentials2",
+                )
         account: Account = await crud.account.get(id=account_id, db_session=db_session)
         if not account:
-            raise HTTPException(status_code=404, detail="User not found")
-
-       
+            if is_login_required:
+                raise HTTPException(status_code=404, detail="User not found")
+            else:
+                return None
 
         return account
 
@@ -98,5 +115,3 @@ def minio_auth() -> MinioClient:
         minio_url=settings.MINIO_URL,
     )
     return minio_client
-
-

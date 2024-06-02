@@ -18,6 +18,8 @@ class IArtistGoodsCreate(ArtistGoodsBase):
     main_image : UUID
     example_image_list : list[UUID]
     
+    type : str
+    
     @validator("title")
     def check_title(cls, value) -> str:
         if len(value) > 20:
@@ -49,10 +51,14 @@ class IArtistGoodsRead(ArtistGoodsBase):
     
     id: UUID
     main_image_id: UUID
-    example_image_url_list : str | list[str]
+    image : IImageMediaRead
+    example_image_url_list : str | list | None
+    example_image_list : list[IImageMediaRead] | None
     artist: IArtistInfoRead
     max_price : int
     image : IImageMediaRead
+    
+    
 
 
 
@@ -60,7 +66,7 @@ class IArtistGoodsListRead(SQLModel):
     
     id: UUID
     main_image_id: UUID
-    example_image_url_list : str | list[str]
+    example_image_url_list : list | str
     artist: IArtistInfoRead
 
     title : str 
@@ -78,6 +84,8 @@ class IArtistGoodsListRead(SQLModel):
     
     created_at : datetime
     
+    status : str
+    
     # @validator("example_image_url_list")
     # def example_image_url_list_to_list(cls, value):
     #     print(json.loads(value) , value, type(value))
@@ -85,8 +93,8 @@ class IArtistGoodsListRead(SQLModel):
 
 
 @optional
-class IArtistGoodsUpdate(ArtistGoodsBase):
+class IArtistGoodsUpdate(IArtistGoodsCreate):
     
-    pass
+    id : UUID
             
 

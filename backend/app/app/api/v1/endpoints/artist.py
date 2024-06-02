@@ -6,6 +6,7 @@ from app.schemas.artist_goods_schema import (
     IArtistGoodsCreate,
     IArtistGoodsListRead,
     IArtistGoodsRead,
+    IArtistGoodsUpdate,
 )
 from app.models.account_model import Account
 from app.schemas.artist_schema import IArtistRead
@@ -75,7 +76,6 @@ import cloudinary.uploader
 from app.core.config import settings
 
 
-
 router = APIRouter()
 
 
@@ -98,12 +98,14 @@ async def get_artist_goods_list(
     time.sleep(1)
     query = None
 
+    query = select(crud.artist_goods.model).where(
+        crud.artist_goods.model.status == "start"
+    )
+
     if category:
-        query = select(crud.artist_goods.model).where(
-            crud.artist_goods.model.category == category
-        )
+        query = query.where(crud.artist_goods.model.category == category)
     else:
-        query = select(crud.artist_goods.model)
+        pass
 
     if search:
         # query by title and description
@@ -166,6 +168,28 @@ async def create_artist_goods(
     return create_response(data=artist_goods)
 
 
+@router.put("/goods",)
+async def update_artist_goods(
+    # artist_goods_id: UUID,
+    new_artist_goods: IArtistGoodsUpdate,
+    current_account: Account = Depends(deps.get_current_account()),
+) -> IPostResponseBase[IArtistGoodsRead]:
+    """
+    Creates a new user
+
+    Required roles:
+    - admin
+    """
+
+    print(new_artist_goods)
+
+    artist_goods = await crud.artist_goods.update(
+        obj_in=new_artist_goods, artist_id=current_account.artist.id
+    )
+
+    return create_response(data=artist_goods)
+
+
 @router.get("/goods/my")
 async def get_my_artist_goods_list(
     params: Params = Depends(),
@@ -194,17 +218,32 @@ async def get_my_artist_goods_list(
 @router.get("/goods/{artist_goods_id}")
 async def get_artist_goods_by_id(
     artist_goods_id: UUID,
+    is_edit: bool = Query(False),
+    current_account: Account = Depends(
+        deps.get_current_account(is_login_required=False)
+    ),
 ) -> IPostResponseBase[IArtistGoodsRead]:
     """
     Gets a project by its id
     """
     time.sleep(1)
+
     artist_goods = await crud.artist_goods.get(id=artist_goods_id)
 
     if artist_goods:
+
+        if is_edit:
+            # print(current_account.artist.id, artist_goods.artist_id)
+            if (
+                current_account is None
+                or artist_goods.artist_id != current_account.artist.id
+            ):
+                raise IdNotFoundException(ArtistGoods, artist_goods_id)
+
         artist_goods.example_image_url_list = json.loads(
             artist_goods.example_image_url_list
         )
+
         return create_response(data=artist_goods)
     else:
         raise IdNotFoundException(ArtistGoods, artist_goods_id)
@@ -223,8 +262,7 @@ async def check_artist_nickname(nickname: str = Query(...)) -> IGetResponseBase[
 
 @router.put("/profile-image")
 async def update_profile_image(
-    
-    image_media_id : UUID,
+    image_media_id: UUID,
     current_account: Account = Depends(deps.get_current_account()),
     db_session=Depends(deps.get_db),
     redis_client: Redis = Depends(deps.get_redis_client),
@@ -234,11 +272,12 @@ async def update_profile_image(
     """
     print(image_media_id)
     artist = current_account.artist
-    
-    
-    image_media = await crud.image.get_image_media_by_id(id = image_media_id, db_session=db_session)
+
+    image_media = await crud.image.get_image_media_by_id(
+        id=image_media_id, db_session=db_session
+    )
     artist.profile_image = image_media
-    
+
     db_session.add(artist)
     await db_session.commit()
 
@@ -247,6 +286,5 @@ async def update_profile_image(
     )
 
     response = create_response(data={"accessToken": data.access_token})
-
 
     return response

@@ -18,6 +18,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 import datetime
 from app.utils.login import verify_kakao_access_token
 
+from sqlalchemy import select, and_
+
 
 class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpdate]):
 
@@ -31,7 +33,8 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
     
 
     async def create(
-        self, *, obj_in: IArtistGoodsCreate, artist_id : UUID,
+        self, *, obj_in: IArtistGoodsCreate | IArtistGoodsUpdate, artist_id : UUID,
+        is_update : bool = False,
         db_session: AsyncSession | None = None
     ) -> Artist:
         db_session = db_session or super().get_db().session
@@ -45,6 +48,11 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
         # end_date는 start_date에서 duration을 더한 시간으로
         obj_in.end_date = obj_in.start_date + datetime.timedelta(days=obj_in.duration)
         
+        status = ''
+        if obj_in.type == 'submit':
+            status = 'start'
+        else:
+            status = 'draft'
         
         
         new_artist_goods = ArtistGoods(
@@ -57,7 +65,7 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
             start_date=obj_in.start_date,
             end_date=obj_in.end_date,
             # status='pending',
-            status='start',
+            status=status,
             max_price = obj_in.price * 10000
         )
         new_artist_goods.main_image_id = obj_in.main_image
@@ -69,22 +77,63 @@ class CRUDArtistGoods(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpda
         for example_image_id in obj_in.example_image_list:
             image = await crud.image.get_image_media_by_id(id = example_image_id)
             if image:
-                example_image_url_list.append(image.media.path)    
+                example_image_url_list.append({
+                    'id' : str(image.id),
+                    'url' : image.media.path
+                })    
         
         print(example_image_url_list)
         
         new_artist_goods.example_image_url_list = json.dumps(example_image_url_list)
         
-
+        if not is_update:
+            db_session.add(new_artist_goods)
+            await db_session.commit()
+            await db_session.refresh(new_artist_goods)
+            return new_artist_goods
+        else:
+            
+            target_artist_goods = await db_session.execute(select(ArtistGoods).where(and_(ArtistGoods.artist_id == artist_id, ArtistGoods.id == obj_in.id)))
+            target_artist_goods = target_artist_goods.scalars().first()
+            
+            if not target_artist_goods:
+                raise Exception('해당 상품이 존재하지 않습니다.')
+            
+            # update with new_artist_goods instance
+            
+            target_artist_goods.title = new_artist_goods.title
+            target_artist_goods.description = new_artist_goods.description
+            target_artist_goods.category = new_artist_goods.category
+            target_artist_goods.price = new_artist_goods.price
+            target_artist_goods.content = new_artist_goods.content
+            target_artist_goods.duration = new_artist_goods.duration
+            target_artist_goods.start_date = new_artist_goods.start_date
+            target_artist_goods.end_date = new_artist_goods.end_date
+            target_artist_goods.status = new_artist_goods.status
+            target_artist_goods.max_price = new_artist_goods.max_price
+            target_artist_goods.main_image_id = new_artist_goods.main_image_id
+            target_artist_goods.example_image_url_list = new_artist_goods.example_image_url_list
+            
+            await db_session.commit()
+            await db_session.refresh(target_artist_goods)
+            
+            return target_artist_goods
+                
+        
+        
+ 
+    
+    
+    async def update(
+          self, *, obj_in: IArtistGoodsCreate | IArtistGoodsUpdate, artist_id : UUID,
+       
+        db_session: AsyncSession | None = None
+    ) -> Artist:
+        
+        return await self.create(obj_in=obj_in, artist_id=artist_id, is_update=True, db_session=db_session)
+        
     
         
-        db_session.add(new_artist_goods)
-        await db_session.commit()
-        await db_session.refresh(new_artist_goods)
-        return new_artist_goods
-    
-    
-
 
 
  
