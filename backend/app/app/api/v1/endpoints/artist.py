@@ -201,7 +201,7 @@ async def get_my_artist_goods_list(
 
     query = select(crud.artist_goods.model).where(
         crud.artist_goods.model.artist_id == current_account.artist.id
-    )
+    ).order_by(crud.artist_goods.model.status.desc()).order_by(crud.artist_goods.model.created_at.desc())
 
     artist_goods_list = await crud.artist_goods.get_multi_paginated(
         params=params, query=query
