@@ -239,6 +239,13 @@ async def get_artist_goods_by_id(
                 or artist_goods.artist_id != current_account.artist.id
             ):
                 raise IdNotFoundException(ArtistGoods, artist_goods_id)
+        else:
+            if artist_goods.status == "draft" or artist_goods.status == "pending":
+                if (
+                current_account is None
+                or artist_goods.artist_id != current_account.artist.id
+                ):
+                    raise IdNotFoundException(ArtistGoods, artist_goods_id)
 
         artist_goods.example_image_url_list = json.loads(
             artist_goods.example_image_url_list
@@ -248,6 +255,30 @@ async def get_artist_goods_by_id(
     else:
         raise IdNotFoundException(ArtistGoods, artist_goods_id)
 
+
+@router.delete("/goods/{artist_goods_id}")
+async def get_artist_goods_by_id(
+    artist_goods_id: UUID,
+    is_edit: bool = Query(False),
+    current_account: Account = Depends(
+        deps.get_current_account(is_login_required=False)
+    ),
+) -> IPostResponseBase[IArtistGoodsRead]:
+    """
+    Gets a project by its id
+    """
+    time.sleep(1)
+
+    artist_goods = await crud.artist_goods.get(id=artist_goods_id)
+    if artist_goods:
+        if artist_goods.artist_id != current_account.artist.id:
+            raise IdNotFoundException(ArtistGoods, artist_goods_id)
+        await crud.artist_goods.remove(id=artist_goods_id)
+        return create_response(data=artist_goods)
+    else:
+        raise IdNotFoundException(ArtistGoods, artist_goods_id)
+
+   
 
 @router.get("/check-nickname")
 async def check_artist_nickname(nickname: str = Query(...)) -> IGetResponseBase[None]:
