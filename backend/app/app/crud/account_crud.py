@@ -61,7 +61,9 @@ class CRUDAccount(CRUDBase[Account, IAccountCreate, IAccountUpdate]):
     ) -> Account:
         db_session = db_session or super().get_db().session
         db_obj = Account.from_orm(obj_in)
-        db_obj.password = get_password_hash(obj_in.password)
+        
+        if db_obj.login_type == ILoginTypeEnum.password:
+            db_obj.password = get_password_hash(obj_in.password)
         db_session.add(db_obj)
         await db_session.commit()
         await db_session.refresh(db_obj)
