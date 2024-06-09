@@ -8,6 +8,7 @@ from .user_follow_crud import user_follow
 from .project_crud import project
 
 from .artist_crud import artist
+from .company_crud import company
 from .account_crud import account
 
 from .artist_goods_crud import artist_goods

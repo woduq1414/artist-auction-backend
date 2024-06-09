@@ -26,6 +26,7 @@ class IAccountCreate(AccountBase):
     password: str | None
     social_id: str | None
     artist_id: UUID | None = None
+    company_id: UUID | None = None
     
     @validator("password")
     def check_password(cls, value) -> str | None:

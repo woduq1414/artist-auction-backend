@@ -1,6 +1,7 @@
 from app.schemas.artist_schema import IArtistInfoRead, IArtistRegister
 from app.schemas.common_schema import IAccountTypeEnum, ILoginTypeEnum
 from app.schemas.account_schema import IAccountRead
+from app.schemas.company_schema import ICompanyRegister
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Any
@@ -177,7 +178,7 @@ async def social_kakao_redirect(
 
 
 @router.post("/artist", status_code=status.HTTP_201_CREATED)
-async def register_user(
+async def register_artist(
     register_data: IArtistRegister,
     redis_client: Redis = Depends(deps.get_redis_client),
 ) -> IPostResponseBase[Any]:
@@ -186,7 +187,7 @@ async def register_user(
     """
 
     await auth_deps.email_exists(register_data.email)
-    await auth_deps.artist_nickname_exists(register_data.nickname)
+    await auth_deps.nickname_exists(register_data.nickname)
 
     if register_data.login_type != ILoginTypeEnum.password:
         await auth_deps.social_id_exists(register_data.social_id)
@@ -209,6 +210,42 @@ async def register_user(
     response = create_response(data={"accessToken": data.access_token})
 
     return response
+
+
+@router.post("/company", status_code=status.HTTP_201_CREATED)
+async def register_company(
+    register_data: ICompanyRegister,
+    redis_client: Redis = Depends(deps.get_redis_client),
+) -> IPostResponseBase[Any]:
+    """
+    Register a new user
+    """
+
+    await auth_deps.email_exists(register_data.email)
+    await auth_deps.nickname_exists(register_data.nickname)
+
+    if register_data.login_type != ILoginTypeEnum.password:
+        await auth_deps.social_id_exists(register_data.social_id)
+
+    if register_data.login_type == ILoginTypeEnum.kakao:
+        kakao_id = verify_kakao_access_token(kakao_access_token=register_data.social_id)
+        if not kakao_id:
+            raise HTTPException(status_code=400, detail="Kakao login failed")
+        else:
+            register_data.social_id = kakao_id
+
+    artist = await crud.company.create(obj_in=register_data)
+    register_data.company_id = artist.id
+
+    account = await crud.account.create(obj_in=register_data)
+
+    data = await auth_deps.get_token_by_account(
+        account=account, redis_client=redis_client
+    )
+    response = create_response(data={"accessToken": data.access_token})
+
+    return response
+
 
 
 @router.post("/login")

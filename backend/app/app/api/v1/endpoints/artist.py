@@ -286,7 +286,7 @@ async def check_artist_nickname(nickname: str = Query(...)) -> IGetResponseBase[
     Check if nickname exists
     """
 
-    await auth_deps.artist_nickname_exists(nickname)
+    await auth_deps.nickname_exists(nickname)
 
     return create_response(data=None)
 

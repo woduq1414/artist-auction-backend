@@ -1,6 +1,6 @@
 from app.schemas.media_schema import IMediaCreate
-from app.schemas.artist_schema import IArtistCreate, IArtistUpdate
-from app.models.artist_model import Artist
+from app.schemas.company_schema import ICompanyCreate, ICompanyUpdate
+from app.models.company_model import Company
 from app.models.media_model import Media
 from app.models.image_media_model import ImageMedia
 from app.core.security import verify_password, get_password_hash
@@ -15,21 +15,21 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.utils.login import verify_kakao_access_token
 
 
-class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
+class CRUDCompany(CRUDBase[Company, ICompanyCreate, ICompanyUpdate]):
 
-    async def get_artist_by_nickname(
+    async def get_company_by_nickname(
         self, *, nickname: str, db_session: AsyncSession | None = None
-    ) -> Artist | None:
+    ) -> Company | None:
         db_session = db_session or super().get_db().session
-        artists = await db_session.execute(select(Artist).where(Artist.nickname == nickname))
-        return artists.scalar_one_or_none()
+        companies = await db_session.execute(select(Company).where(Company.nickname == nickname))
+        return companies.scalar_one_or_none()
 
 
     async def create(
-        self, *, obj_in: IArtistCreate, db_session: AsyncSession | None = None
-    ) -> Artist:
+        self, *, obj_in: ICompanyCreate, db_session: AsyncSession | None = None
+    ) -> Company:
         db_session = db_session or super().get_db().session
-        db_obj = Artist.from_orm(obj_in)
+        db_obj = Company.from_orm(obj_in)
         db_session.add(db_obj)
         await db_session.commit()
         await db_session.refresh(db_obj)
@@ -45,17 +45,17 @@ class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
     async def update_photo(
         self,
         *,
-        artist : Artist,
+        company : Company,
         image_media : ImageMedia,
         db_session: AsyncSession | None = None
-    ) -> Artist:
+    ) -> Company:
         db_session = db_session or super().get_db().session
         print(db_session)
-        artist.profile_image = image_media
-        db_session.add(artist)
+        company.profile_image = image_media
+        db_session.add(company)
         await db_session.commit()
-        await db_session.refresh(artist)
-        return artist
+        await db_session.refresh(company)
+        return company
 
 
-artist = CRUDArtist(Artist)
+company = CRUDCompany(Company)

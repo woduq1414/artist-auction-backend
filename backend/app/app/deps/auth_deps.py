@@ -22,7 +22,7 @@ from app.core import security
 from app.core.config import Settings
 
 from app.models.user_model import User
-from app.schemas.common_schema import TokenType
+from app.schemas.common_schema import IAccountTypeEnum, TokenType
 from app.schemas.token_schema import Token
 from app.utils.token import add_token_to_redis, get_valid_tokens
 
@@ -45,7 +45,7 @@ async def email_exists(email: str) -> str:
 
     return email
 
-async def artist_nickname_exists(nickname: str) -> str:
+async def nickname_exists(nickname: str) -> str:
     artist = await crud.artist.get_artist_by_nickname(nickname=nickname)
     if artist:
         raise HTTPException(
@@ -53,7 +53,15 @@ async def artist_nickname_exists(nickname: str) -> str:
             detail="There is already a user with same nickname",
         )
 
-    return artist
+    company = await crud.company.get_company_by_nickname(nickname=nickname)
+    if company:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="There is already a user with same nickname",
+        )
+    
+    
+    return nickname
 
 
 
@@ -75,11 +83,21 @@ async def get_token_by_account(account: Account, redis_client: Redis):
     refresh_token_expires = timedelta(
         minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES
     )
-    paylaod_data = {
-        "id": str(account.id),
-        "nickname" : account.artist.nickname,
-        "profileImage" : account.artist.profile_image.media.path if account.artist.profile_image else None,
-    }
+    
+    if account.account_type == IAccountTypeEnum.artist:
+        paylaod_data = {
+            "id": str(account.id),
+            "nickname" : account.artist.nickname,
+            "profileImage" : account.artist.profile_image.media.path if account.artist.profile_image else None,
+            "accountType" : "artist"
+        }
+    elif account.account_type == IAccountTypeEnum.company:
+        paylaod_data = {
+            "id": str(account.id),
+            "nickname" : account.company.nickname,
+            "profileImage" : account.company.profile_image.media.path if account.company.profile_image else None,
+            "accountType" : "company"
+        }
     access_token = security.create_access_token(
         paylaod_data, expires_delta=access_token_expires
     )

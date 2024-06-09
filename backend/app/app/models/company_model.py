@@ -12,15 +12,11 @@ from pydantic import EmailStr
 from uuid import UUID
 
 
-class ArtistBase(SQLModel):
+class CompanyBase(SQLModel):
 
     
     nickname: str | None = Field(nullable=False)
-    birthdate: datetime | None = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=True)
-    )  # birthday with timezone
-
-    gender: IGenderEnum | None = Field(default=None, nullable=False)
+   
     favorite_category: str | None = Field(default=None, nullable=True)
     
     description : str | None = Field(nullable=True)
@@ -35,12 +31,12 @@ class ArtistBase(SQLModel):
 
 
 
-class Artist(BaseUUIDModel, ArtistBase, table=True):
+class Company(BaseUUIDModel, CompanyBase, table=True):
     profile_image_id: UUID | None = Field(default=None, foreign_key="ImageMedia.id")
     profile_image: ImageMedia = Relationship(
         sa_relationship_kwargs={
             "lazy": "joined",
-            "primaryjoin": "Artist.profile_image_id==ImageMedia.id",
+            "primaryjoin": "Company.profile_image_id==ImageMedia.id",
         }
     )
 
