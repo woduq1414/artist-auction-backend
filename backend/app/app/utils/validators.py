@@ -44,3 +44,13 @@ def check_password(cls, value) -> str | None:
     
     
     return value
+
+
+def check_account_description(cls, value) -> str | None:
+    if value is None:
+        return value
+
+    if len(value) > 100:
+        raise ValueError("Description should be under 100 characters")
+
+    return value

@@ -5,7 +5,7 @@ from app.schemas.common_schema import IGenderEnum, ILoginTypeEnum
 from app.schemas.account_schema import AccountBase, IAccountCreate
 from app.models.artist_model import ArtistBase
 from app.models.account_model import Account
-from app.utils.validators import check_nickname, check_password
+from app.utils.validators import check_account_description, check_nickname, check_password
 from pydantic import BaseModel
 from uuid import UUID
 from enum import Enum
@@ -67,6 +67,7 @@ class IArtistInfoRead(SQLModel):
     id: UUID
     nickname: str
     profile_image: IImageMediaRead | None
+    description: str | None
 
 
 class IUserBasicInfo(BaseModel):
@@ -91,3 +92,7 @@ class IArtistInfoEdit(SQLModel):
     @validator("password")
     def check_password_val(cls, value) -> str | None:
         return check_password(cls, value)
+    
+    @validator("description")
+    def check_description_val(cls, value) -> str | None:
+        return check_account_description(cls, value)
