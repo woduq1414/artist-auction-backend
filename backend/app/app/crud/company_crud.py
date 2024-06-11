@@ -34,7 +34,19 @@ class CRUDCompany(CRUDBase[Company, ICompanyCreate, ICompanyUpdate]):
         await db_session.commit()
         await db_session.refresh(db_obj)
         return db_obj
-    
+    async def update(
+        self,
+        *,
+        obj_in: ICompanyUpdate,
+        db_session: AsyncSession | None = None
+    ) -> Company:
+        db_session = db_session or super().get_db().session
+        
+        db_session.add(obj_in)
+        await db_session.commit()
+        await db_session.refresh(obj_in)
+        
+        return obj_in
     
     
 

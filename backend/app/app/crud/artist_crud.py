@@ -38,8 +38,19 @@ class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
     
     
 
-
-
+    async def update(
+        self,
+        *,
+        obj_in: IArtistUpdate,
+        db_session: AsyncSession | None = None
+    ) -> Artist:
+        db_session = db_session or super().get_db().session
+        
+        db_session.add(obj_in)
+        await db_session.commit()
+        await db_session.refresh(obj_in)
+        
+        return obj_in
  
 
     async def update_photo(

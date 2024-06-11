@@ -84,19 +84,23 @@ async def get_token_by_account(account: Account, redis_client: Redis):
         minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES
     )
     
+    # print(account.artist.nickname)
+    
     if account.account_type == IAccountTypeEnum.artist:
         paylaod_data = {
             "id": str(account.id),
             "nickname" : account.artist.nickname,
             "profileImage" : account.artist.profile_image.media.path if account.artist.profile_image else None,
-            "accountType" : "artist"
+            "accountType" : "artist",
+            "loginType" : account.login_type
         }
     elif account.account_type == IAccountTypeEnum.company:
         paylaod_data = {
             "id": str(account.id),
             "nickname" : account.company.nickname,
             "profileImage" : account.company.profile_image.media.path if account.company.profile_image else None,
-            "accountType" : "company"
+            "accountType" : "company",
+            "loginType" : account.login_type
         }
     access_token = security.create_access_token(
         paylaod_data, expires_delta=access_token_expires

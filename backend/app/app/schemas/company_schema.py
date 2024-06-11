@@ -81,3 +81,9 @@ class ICompanyInfoRead(SQLModel):
     profile_image: IImageMediaRead | None
 
 
+class ICompanyInfoEdit(SQLModel):
+    name : str | None
+    nickname : str | None
+    password : str | None
+    content : str | None
+    description : str | None

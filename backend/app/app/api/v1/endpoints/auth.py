@@ -1,7 +1,7 @@
-from app.schemas.artist_schema import IArtistInfoRead, IArtistRegister
+from app.schemas.artist_schema import IArtistInfoEdit, IArtistInfoRead, IArtistRegister
 from app.schemas.common_schema import IAccountTypeEnum, ILoginTypeEnum
 from app.schemas.account_schema import IAccountRead
-from app.schemas.company_schema import ICompanyRegister
+from app.schemas.company_schema import ICompanyInfoEdit, ICompanyRegister
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Any
@@ -247,7 +247,6 @@ async def register_company(
     return response
 
 
-
 @router.post("/login")
 async def login(
     email: str = Body(...),
@@ -317,3 +316,103 @@ async def check_email(email: str = Query(...)) -> IGetResponseBase[None]:
     return create_response(data=None)
 
 
+@router.get("/edit-profile")
+async def edit_profile_form(
+    current_account: Account = Depends(deps.get_current_account()),
+) -> IGetResponseBase[IArtistInfoEdit | ICompanyInfoEdit]:
+    """
+    Get current user
+    """
+
+    if current_account.account_type == IAccountTypeEnum.artist:
+        artist = current_account.artist
+        print(artist.nickname, "!@#!@#")
+        result = IArtistInfoEdit(
+            id=current_account.id,
+            account_type=current_account.account_type,
+            name=current_account.name,
+            email=current_account.email,
+            nickname=artist.nickname,
+            content=artist.content,
+            # content = '123132',
+            description=artist.description,
+        )
+        return create_response(data=result)
+
+    elif current_account.account_type == IAccountTypeEnum.company:
+        company = current_account.company
+        result = ICompanyInfoEdit(
+            id=current_account.id,
+            account_type=current_account.account_type,
+            name=current_account.name,
+            email=current_account.email,
+            nickname=company.nickname,
+            content=company.content,
+            description=company.description,
+        )
+        return create_response(data=result)
+
+
+@router.put("/edit-profile")
+async def edit_profile(
+    edit_data: IArtistInfoEdit | ICompanyInfoEdit,
+    current_account: Account = Depends(deps.get_current_account()),
+    redis_client: Redis = Depends(deps.get_redis_client),
+    db_session=Depends(deps.get_db),
+):
+    """
+    Edit profile
+    """
+
+    if current_account.account_type == IAccountTypeEnum.artist:
+        artist = current_account.artist
+        current_nickname = artist.nickname
+        if edit_data.nickname is not None and current_nickname != edit_data.nickname:
+            await auth_deps.nickname_exists(edit_data.nickname)
+            artist.nickname = edit_data.nickname
+
+        if edit_data.password is not None:
+            artist.password = security.get_password_hash(edit_data.password)
+
+        if edit_data.content is not None:
+            artist.content = edit_data.content
+
+        if edit_data.description is not None:
+            artist.description = edit_data.description
+
+        await crud.artist.update(obj_in=artist, db_session=db_session)
+
+        data = await auth_deps.get_token_by_account(
+            account=current_account, redis_client=redis_client
+        )
+
+        response = create_response(data={"accessToken": data.access_token})
+        return response
+
+    elif current_account.account_type == IAccountTypeEnum.company:
+
+        company = current_account.company
+        current_nickname = company.nickname
+        if edit_data.nickname is not None and current_nickname != edit_data.nickname:
+            await auth_deps.nickname_exists(edit_data.nickname)
+            company.nickname = edit_data.nickname
+
+        if edit_data.password is not None:
+            company.password = security.get_password_hash(edit_data.password)
+
+        if edit_data.content is not None:
+            company.content = edit_data.content
+
+        if edit_data.description is not None:
+            company.description = edit_data.description
+            
+            
+            
+        await crud.company.update(obj_in=company, db_session=db_session)
+
+        data = await auth_deps.get_token_by_account(
+            account=current_account, redis_client=redis_client
+        )
+
+        response = create_response(data={"accessToken": data.access_token})
+        return response

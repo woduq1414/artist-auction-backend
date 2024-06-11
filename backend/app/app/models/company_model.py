@@ -20,6 +20,8 @@ class CompanyBase(SQLModel):
     favorite_category: str | None = Field(default=None, nullable=True)
     
     description : str | None = Field(nullable=True)
+
+    content : str | None = Field(nullable=True)
    
     
     

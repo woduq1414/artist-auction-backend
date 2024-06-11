@@ -4,6 +4,7 @@ from app.models.group_model import GroupBase
 from app.schemas.common_schema import ILoginTypeEnum
 from app.models.account_model import AccountBase
 
+from app.utils.validators import check_password
 from pydantic import BaseModel
 from uuid import UUID
 from enum import Enum
@@ -29,20 +30,8 @@ class IAccountCreate(AccountBase):
     company_id: UUID | None = None
     
     @validator("password")
-    def check_password(cls, value) -> str | None:
-        print(cls ,value)
-        if value is None:
-            return value
-        
-        
-        passwordReg = r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$"
-        
-        if not re.match(passwordReg, value):
-            raise ValueError("Password should have at least one number, one special character, one alphabet character")
-        
-        
-        
-        return value
+    def check_password_val(cls, value) -> str | None:
+        return check_password(cls, value)
     
     
     
