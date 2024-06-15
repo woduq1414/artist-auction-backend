@@ -21,8 +21,7 @@ class ArtistGoodsDealBase(SQLModel):
     
     request_image_list : str = Field(nullable=False)
     
-    
-    status : str = Field(nullable=False)
+
     price : int = Field(nullable=False)
     
     
@@ -33,7 +32,8 @@ class ArtistGoodsDealBase(SQLModel):
 
 
 class ArtistGoodsDeal(BaseUUIDModel, ArtistGoodsDealBase, table=True):
-
+    
+    status : str = Field(nullable=False)
     artist_goods_id: UUID | None = Field(default=None, foreign_key="ArtistGoods.id")
     
     artist_goods: ArtistGoods = Relationship(

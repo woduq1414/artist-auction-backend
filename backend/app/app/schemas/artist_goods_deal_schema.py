@@ -19,9 +19,9 @@ class IArtistGoodsDealCreate(ArtistGoodsDealBase):
     title : str
     description : str
     
-    request_image_list : str
+    request_image_list : str | list | None
     
-    status : str
+
     
     price : int
     

@@ -30,8 +30,10 @@ class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
         self, *, artist_goods_id: UUID, db_session: AsyncSession | None = None
     ) -> Artist | None:
         db_session = db_session or super().get_db().session
-        artist = await db_session.execute(select(Artist).where(ArtistGoods.id == artist_goods_id))
-        return artist.scalar_one_or_none()
+        artist_goods = await db_session.execute(select(ArtistGoods).where(ArtistGoods.id == artist_goods_id))
+        if artist_goods is None:
+            return None
+        return artist_goods.scalars().first().artist
 
 
     async def create(

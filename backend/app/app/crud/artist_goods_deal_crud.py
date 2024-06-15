@@ -52,14 +52,32 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoods
         new_artist_goods_deal = ArtistGoodsDeal(
             title=obj_in.title,
             description=obj_in.description,
-            request_image_list=obj_in.request_image_list,
-            status=obj_in.status,
+
+            status='pending',
             price=obj_in.price,
             artist_goods_id=obj_in.artist_goods_id,
             artist_id=artist_id,
             company_id=company_id
         )
-                
+        
+        example_image_url_list = []
+        for example_image_id in obj_in.request_image_list:
+            image = await crud.image.get_image_media_by_id(id = example_image_id)
+            if image:
+                example_image_url_list.append({
+                    'id' : str(image.id),
+                    'url' : image.media.path
+                })    
+        
+        print(example_image_url_list)
+        
+        new_artist_goods_deal.request_image_list = json.dumps(example_image_url_list)
+        
+        
+        db_session.add(new_artist_goods_deal)
+        await db_session.commit()
+        await db_session.refresh(new_artist_goods_deal)
+        return new_artist_goods_deal
         
         
  
