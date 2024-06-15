@@ -4,6 +4,7 @@ from app.models.artist_model import Artist
 from app.models.media_model import Media
 from app.models.image_media_model import ImageMedia
 from app.core.security import verify_password, get_password_hash
+from app.models.artist_goods_model import ArtistGoods
 from pydantic.networks import EmailStr
 from typing import Any
 from app.crud.base_crud import CRUDBase
@@ -23,6 +24,14 @@ class CRUDArtist(CRUDBase[Artist, IArtistCreate, IArtistUpdate]):
         db_session = db_session or super().get_db().session
         artists = await db_session.execute(select(Artist).where(Artist.nickname == nickname))
         return artists.scalar_one_or_none()
+    
+    
+    async def get_artist_by_artist_goods_id(
+        self, *, artist_goods_id: UUID, db_session: AsyncSession | None = None
+    ) -> Artist | None:
+        db_session = db_session or super().get_db().session
+        artist = await db_session.execute(select(Artist).where(ArtistGoods.id == artist_goods_id))
+        return artist.scalar_one_or_none()
 
 
     async def create(

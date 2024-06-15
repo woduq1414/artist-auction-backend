@@ -12,4 +12,5 @@ from .company_crud import company
 from .account_crud import account
 
 from .artist_goods_crud import artist_goods
+from .artist_goods_deal_crud import artist_goods_deal
 # from .purchase_crud import purchase

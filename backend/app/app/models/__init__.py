@@ -12,3 +12,4 @@ from .account_model import Account
 from .artist_model import Artist
 from .artist_goods_model import ArtistGoods
 from .company_model import Company
+from .artist_goods_deal_model import ArtistGoodsDeal
