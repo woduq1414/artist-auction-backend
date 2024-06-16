@@ -35,13 +35,13 @@ class IArtistGoodsDealRead(ArtistGoodsDealBase):
     title : str
     description : str
     
-    request_image_list : str
+    request_image_list : str | list | None
     
     status : str
     
     price : int
     
-    artist_goods_id : UUID
+    artist_goods_id : UUID | None
     
     
     

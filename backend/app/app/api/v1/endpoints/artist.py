@@ -14,7 +14,7 @@ from app.models.artist_goods_model import ArtistGoods
 from app.models.image_media_model import ImageMedia
 from fastapi import HTTPException
 from io import BytesIO
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 from uuid import UUID
 from fastapi import Form
 from redis.asyncio import Redis
@@ -126,3 +126,5 @@ async def update_profile_image(
     response = create_response(data={"accessToken": data.access_token})
 
     return response
+
+

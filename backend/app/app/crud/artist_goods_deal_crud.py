@@ -33,6 +33,22 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoods
         return artist_goods.scalars().all()
     
     
+    async def get_artist_goods_deal_list_by_artist_id(
+        self, *, artist_id: UUID, db_session: AsyncSession | None = None
+    ) -> list[ArtistGoodsDeal] | None:
+        db_session = db_session or super().get_db().session
+        artist_goods_deal = await db_session.execute(select(ArtistGoodsDeal).where(ArtistGoodsDeal.artist_id == artist_id))
+        return artist_goods_deal.scalars().all()
+    
+    async def get_artist_goods_deal_list_by_company_id(
+        
+        self, *, company_id: UUID, db_session: AsyncSession | None = None
+    ) -> list[ArtistGoodsDeal] | None:
+        db_session = db_session or super().get_db().session
+        artist_goods_deal = await db_session.execute(select(ArtistGoodsDeal).where(ArtistGoodsDeal.company_id == company_id))
+        return artist_goods_deal.scalars().all()
+    
+    
 
     async def create(
         self, *, obj_in: IArtistGoodsDealCreate | IArtistGoodsDealUpdate, company_id : UUID,
@@ -150,4 +166,4 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoods
     #     return obj
 
 
-artist_goods_deal = CRUDArtistGoodsDeal(ArtistGoods)
+artist_goods_deal = CRUDArtistGoodsDeal(ArtistGoodsDeal)

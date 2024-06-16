@@ -1,7 +1,7 @@
 from app.schemas.artist_schema import IArtistInfoEdit, IArtistInfoRead, IArtistRegister
 from app.schemas.common_schema import IAccountTypeEnum, ILoginTypeEnum
 from app.schemas.account_schema import IAccountRead
-from app.schemas.company_schema import ICompanyInfoEdit, ICompanyRegister
+from app.schemas.company_schema import ICompanyInfoEdit, ICompanyInfoRead, ICompanyRegister
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Any
@@ -416,3 +416,24 @@ async def edit_profile(
 
         response = create_response(data={"accessToken": data.access_token})
         return response
+
+
+@router.get("/profile/{account_id}")
+async def get_account_profile(
+    account_id: UUID,
+) -> IGetResponseBase[IArtistInfoRead | ICompanyInfoRead]:
+    """
+    Gets the profile of the user
+    """
+    
+    account = await crud.account.get(id=account_id)
+    if account is None:
+        raise IdNotFoundException(Account, account_id)
+    if account.artist_id:
+        artist = await crud.artist.get(id=account.artist_id)
+        return create_response(data=artist)
+    elif account.company_id:
+        company = await crud.company.get(id=account.company_id)
+        return create_response(data=company)
+    
+    

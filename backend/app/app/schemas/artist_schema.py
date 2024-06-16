@@ -68,6 +68,7 @@ class IArtistInfoRead(SQLModel):
     nickname: str
     profile_image: IImageMediaRead | None
     description: str | None
+    content : str | None
 
 
 class IUserBasicInfo(BaseModel):

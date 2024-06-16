@@ -226,6 +226,31 @@ async def create_artist_goods_deal(
     return create_response(data=artist_goods_deal)
 
 
+@router.get("/deal/my")
+async def get_my_artist_goods_deal(
+    params: Params = Depends(),
+    current_account: Account = Depends(deps.get_current_account()),
+) -> IGetResponsePaginated[IArtistGoodsDealRead]:
+    """
+    Gets a paginated list of projects
+    """
+    if current_account.company_id is None:
+        query = select(crud.artist_goods_deal.model).where(
+            crud.artist_goods_deal.model.artist_id == current_account.artist_id
+        )
+    else:
+        query = select(crud.artist_goods_deal.model).where(
+            crud.artist_goods_deal.model.company_id == current_account.company_id
+        )
+
+    artist_goods_deal_list = await crud.artist_goods_deal.get_multi_paginated(
+        params=params, query=query
+    )
+
+    return create_response(data=artist_goods_deal_list)
+
+
+
 @router.get("/{artist_goods_id}")
 async def get_artist_goods_by_id(
     artist_goods_id: UUID,

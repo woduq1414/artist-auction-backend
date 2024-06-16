@@ -79,6 +79,8 @@ class ICompanyInfoRead(SQLModel):
     id: UUID
     nickname: str
     profile_image: IImageMediaRead | None
+    content : str | None
+    description: str | None
 
 
 class ICompanyInfoEdit(SQLModel):
