@@ -6,6 +6,8 @@ from uuid import UUID
 
 from app.schemas.artist_schema import IArtistRead, IArtistInfoRead
 from app.schemas.image_media_schema import IImageMediaRead
+from app.schemas.artist_goods_schema import IArtistGoodsRead
+from app.schemas.company_schema import ICompanyInfoRead
 from .user_schema import IUserReadWithoutGroups
 import json
 from datetime import datetime
@@ -31,7 +33,7 @@ class IArtistGoodsDealCreate(ArtistGoodsDealBase):
     
 
 class IArtistGoodsDealRead(ArtistGoodsDealBase):
-    
+    id : UUID
     title : str
     description : str
     
@@ -42,6 +44,9 @@ class IArtistGoodsDealRead(ArtistGoodsDealBase):
     price : int
     
     artist_goods_id : UUID | None
+    artist_goods : IArtistGoodsRead | None
+    
+    company : ICompanyInfoRead | None
     
     
     

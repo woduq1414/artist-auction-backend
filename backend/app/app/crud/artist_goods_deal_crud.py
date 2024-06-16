@@ -23,11 +23,11 @@ from app.utils.login import verify_kakao_access_token
 from sqlalchemy import select, and_
 
 
-class CRUDArtistGoodsDeal(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoodsUpdate]):
+class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArtistGoodsDealUpdate]):
 
     async def get_artist_goods_list_by_artist_id(
         self, *, artist_id: UUID, db_session: AsyncSession | None = None
-    ) -> list[ArtistGoods] | None:
+    ) -> list[ArtistGoodsDeal] | None:
         db_session = db_session or super().get_db().session
         artist_goods = await db_session.execute(select(ArtistGoods).where(ArtistGoods.artist_id == artist_id))
         return artist_goods.scalars().all()
@@ -99,13 +99,13 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoods, IArtistGoodsCreate, IArtistGoods
  
     
     
-    async def update(
-          self, *, obj_in: IArtistGoodsCreate | IArtistGoodsUpdate, artist_id : UUID,
+    # async def update(
+    #       self, *, obj_in: IArtistGoodsCreate | IArtistGoodsUpdate, artist_id : UUID,
        
-        db_session: AsyncSession | None = None
-    ) -> Artist:
+    #     db_session: AsyncSession | None = None
+    # ) -> Artist:
         
-        return await self.create(obj_in=obj_in, artist_id=artist_id, is_update=True, db_session=db_session)
+    #     return await self.create(obj_in=obj_in, artist_id=artist_id, is_update=True, db_session=db_session)
         
     
         

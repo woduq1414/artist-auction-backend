@@ -13,6 +13,7 @@ from app.schemas.artist_schema import IArtistRead
 from app.models.artist_goods_model import ArtistGoods
 from app.models.image_media_model import ImageMedia
 from app.schemas.artist_goods_deal_schema import IArtistGoodsDealCreate, IArtistGoodsDealRead
+from app.models.artist_goods_deal_model import ArtistGoodsDeal
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Optional
@@ -249,6 +250,66 @@ async def get_my_artist_goods_deal(
 
     return create_response(data=artist_goods_deal_list)
 
+@router.get("/deal/{artist_goods_deal_id}")
+async def get_artist_goods_deal_by_id(
+    artist_goods_deal_id: UUID,
+    current_account: Account = Depends(deps.get_current_account()),
+) -> IPostResponseBase[IArtistGoodsDealRead]:
+    """
+    Gets a project by its id
+    """
+
+
+    artist_goods_deal = await crud.artist_goods_deal.get(id=artist_goods_deal_id)
+
+    if artist_goods_deal:
+
+        if current_account.artist_id and artist_goods_deal.artist_id != current_account.artist_id:
+      
+            raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+        
+        if current_account.company_id and artist_goods_deal.company_id != current_account.company_id:
+        
+            raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+
+        artist_goods_deal.request_image_list = json.loads(
+            artist_goods_deal.request_image_list
+        )
+
+        return create_response(data=artist_goods_deal)
+    else:
+        raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+    
+@router.put("/deal/{artist_goods_deal_id}/accept", status_code=status.HTTP_201_CREATED)
+async def accept_artist_goods_deal(
+    artist_goods_deal_id: UUID,
+    current_account: Account = Depends(deps.get_current_account()),
+) -> IPostResponseBase[IArtistGoodsDealRead]:
+    """
+    Gets a project by its id
+    """
+
+
+    artist_goods_deal = await crud.artist_goods_deal.get(id=artist_goods_deal_id)
+
+    if artist_goods_deal:
+
+        if current_account.artist_id and artist_goods_deal.artist_id == current_account.artist_id:
+            
+            await crud.artist_goods_deal.update(obj_current=artist_goods_deal, obj_new = {
+                'status' : 'accept'
+            })
+            
+            return create_response(data=artist_goods_deal)
+        else:
+            raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+       
+
+        
+
+       
+    else:
+        raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
 
 
 @router.get("/{artist_goods_id}")
