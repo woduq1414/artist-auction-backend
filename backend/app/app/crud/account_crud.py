@@ -36,6 +36,15 @@ class CRUDAccount(CRUDBase[Account, IAccountCreate, IAccountUpdate]):
         accounts = await db_session.execute(select(Account).where(Account.artist_id == artist_id))
         return accounts.scalar_one_or_none()
     
+    async def get_by_company_id(
+        self, *, company_id: UUID, db_session: AsyncSession | None = None
+    ) -> Account | None:
+        db_session = db_session or super().get_db().session
+        accounts = await db_session.execute(select(Account).where(Account.company_id == company_id))
+        return accounts.scalar_one_or_none()
+    
+    
+    
     async def get_by_social_id(
         self, *, social_id: str, db_session: AsyncSession | None = None
     ) -> Account | None:

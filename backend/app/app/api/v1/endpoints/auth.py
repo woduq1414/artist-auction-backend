@@ -1,6 +1,6 @@
 from app.schemas.artist_schema import IArtistInfoEdit, IArtistInfoRead, IArtistRegister
 from app.schemas.common_schema import IAccountTypeEnum, ILoginTypeEnum
-from app.schemas.account_schema import IAccountRead
+from app.schemas.account_schema import IAccountBasicInfo, IAccountRead
 from app.schemas.company_schema import ICompanyInfoEdit, ICompanyInfoRead, ICompanyRegister
 from fastapi import HTTPException
 from io import BytesIO
@@ -436,4 +436,31 @@ async def get_account_profile(
         company = await crud.company.get(id=account.company_id)
         return create_response(data=company)
     
+
+@router.get("/artist/{artist_id}")
+async def get_account_id_by_artist_id(
+    artist_id: UUID,
+) -> IGetResponseBase[IAccountBasicInfo]:
+    """
+    Gets the profile of the user
+    """
     
+    account = await crud.account.get_by_artist_id(artist_id=artist_id)
+    if account is None:
+        raise IdNotFoundException(Account, artist_id)
+    return create_response(data=account)
+
+
+@router.get("/company/{company_id}")
+async def get_account_id_by_company_id(
+    company_id: UUID,
+) -> IGetResponseBase[IAccountBasicInfo]:
+    """
+    Gets the profile of the user
+    """
+    
+    account = await crud.account.get_by_company_id(company_id=company_id)
+    if account is None:
+        raise IdNotFoundException(Account, company_id)
+    
+    return create_response(data=account)

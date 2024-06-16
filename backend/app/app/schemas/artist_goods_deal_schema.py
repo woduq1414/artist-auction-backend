@@ -47,6 +47,7 @@ class IArtistGoodsDealRead(ArtistGoodsDealBase):
     artist_goods : IArtistGoodsRead | None
     
     company : ICompanyInfoRead | None
+    artist : IArtistInfoRead | None
     
     
     

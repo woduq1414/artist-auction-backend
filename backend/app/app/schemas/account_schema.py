@@ -60,6 +60,9 @@ class IAccountRead(AccountBase):
 
 
 
+class IAccountBasicInfo(BaseModel):
+    id: UUID
+
 
 
 
