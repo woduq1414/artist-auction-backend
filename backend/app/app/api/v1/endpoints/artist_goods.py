@@ -223,6 +223,7 @@ async def get_my_artist_goods_list(
 async def create_artist_goods_deal(
     new_artist_goods_deal: IArtistGoodsDealCreate,
     current_account: Account = Depends(deps.get_current_account()),
+    db_session=Depends(deps.get_db),
 ) -> IPostResponseBase[IArtistGoodsDealRead]:
     """
     Creates a new user
@@ -230,6 +231,26 @@ async def create_artist_goods_deal(
     Required roles:
     - admin
     """
+
+    if current_account.company_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="company_id is required"
+        )
+    query = (
+        select(crud.artist_goods_deal.model)
+        .where(crud.artist_goods_deal.model.company_id == current_account.company_id)
+        .where(
+            crud.artist_goods_deal.model.artist_goods_id
+            == new_artist_goods_deal.artist_goods_id
+        )
+    )
+
+    old_artist_goods_deal_row = (await db_session.execute(query)).scalars().first()
+
+    if old_artist_goods_deal_row is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="already exist"
+        )
 
     artist_goods_deal = await crud.artist_goods_deal.create(
         obj_in=new_artist_goods_deal, company_id=current_account.company.id
@@ -254,7 +275,7 @@ async def update_artist_goods_deal(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="company_id is required"
         )
-    
+
     artist_goods_deal = await crud.artist_goods_deal.update(
         obj_in=new_artist_goods_deal, company_id=current_account.company.id
     )
@@ -264,6 +285,7 @@ async def update_artist_goods_deal(
 
 @router.get("/deal/my")
 async def get_my_artist_goods_deal(
+    artist_goods_id: UUID = Query(None),
     params: Params = Depends(),
     current_account: Account = Depends(deps.get_current_account()),
 ) -> IGetResponsePaginated[IArtistGoodsDealRead]:
@@ -278,12 +300,17 @@ async def get_my_artist_goods_deal(
         query = select(crud.artist_goods_deal.model).where(
             crud.artist_goods_deal.model.company_id == current_account.company_id
         )
+    if artist_goods_id:
+        query = query.where(
+            crud.artist_goods_deal.model.artist_goods_id == artist_goods_id
+        )
 
     artist_goods_deal_list = await crud.artist_goods_deal.get_multi_paginated(
         params=params, query=query
     )
 
     return create_response(data=artist_goods_deal_list)
+
 
 @router.delete("/deal/{artist_goods_deal_id}")
 async def delete_artist_goods_deal(
@@ -300,7 +327,10 @@ async def delete_artist_goods_deal(
     artist_goods_deal = await crud.artist_goods_deal.get(id=artist_goods_deal_id)
 
     if artist_goods_deal:
-        if current_account.company_id is None or artist_goods_deal.company_id != current_account.company_id:
+        if (
+            current_account.company_id is None
+            or artist_goods_deal.company_id != current_account.company_id
+        ):
             raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
         await crud.artist_goods_deal.remove(id=artist_goods_deal_id)
         return create_response(data=artist_goods_deal)
@@ -368,7 +398,7 @@ async def accept_artist_goods_deal(
             and artist_goods_deal.artist_id == current_account.artist_id
         ):
 
-            await crud.artist_goods_deal.update(
+            await crud.artist_goods_deal.update_by_dict(
                 obj_current=artist_goods_deal, obj_new={"status": "accept"}
             )
 

@@ -123,12 +123,20 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArt
           self, *, obj_in: IArtistGoodsDealCreate | IArtistGoodsDealUpdate, company_id : UUID,
        
         db_session: AsyncSession | None = None
-    ) -> Artist:
+    ) -> ArtistGoodsDeal:
         
         return await self.create(obj_in=obj_in, company_id=company_id, is_update=True, db_session=db_session)
         
     
+    async def update_by_dict(
+         self,
+        *,
+        obj_current: ArtistGoodsDeal,
+        obj_new: IArtistGoodsDealUpdate | dict[str, Any] | ArtistGoodsDeal,
+        db_session: AsyncSession | None = None,
+    ) -> ArtistGoodsDeal:
         
+        return await super().update(obj_current=obj_current, obj_new=obj_new, db_session=db_session)
 
 
  
