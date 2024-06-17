@@ -90,22 +90,42 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArt
         new_artist_goods_deal.request_image_list = json.dumps(example_image_url_list)
         
         
-        db_session.add(new_artist_goods_deal)
-        await db_session.commit()
-        await db_session.refresh(new_artist_goods_deal)
-        return new_artist_goods_deal
+        if not is_update:
+            db_session.add(new_artist_goods_deal)
+            await db_session.commit()
+            await db_session.refresh(new_artist_goods_deal)
+            return new_artist_goods_deal
+        else:
+            
+            target_artist_goods_deal = await db_session.execute(select(ArtistGoodsDeal).where(and_(ArtistGoodsDeal.company_id == company_id, ArtistGoodsDeal.id == obj_in.id)))
+            target_artist_goods_deal = target_artist_goods_deal.scalars().first()
+            
+            if not target_artist_goods_deal:
+                raise Exception('해당 상품이 존재하지 않습니다.')
+            
+            # update with new_artist_goods instance
+            
+            target_artist_goods_deal.title = new_artist_goods_deal.title
+            target_artist_goods_deal.description = new_artist_goods_deal.description
+            target_artist_goods_deal.price = new_artist_goods_deal.price
+            target_artist_goods_deal.request_image_list = new_artist_goods_deal.request_image_list
+            
+            await db_session.commit()
+            await db_session.refresh(target_artist_goods_deal)
+            
+            return target_artist_goods_deal
         
         
  
     
     
-    # async def update(
-    #       self, *, obj_in: IArtistGoodsCreate | IArtistGoodsUpdate, artist_id : UUID,
+    async def update(
+          self, *, obj_in: IArtistGoodsDealCreate | IArtistGoodsDealUpdate, company_id : UUID,
        
-    #     db_session: AsyncSession | None = None
-    # ) -> Artist:
+        db_session: AsyncSession | None = None
+    ) -> Artist:
         
-    #     return await self.create(obj_in=obj_in, artist_id=artist_id, is_update=True, db_session=db_session)
+        return await self.create(obj_in=obj_in, company_id=company_id, is_update=True, db_session=db_session)
         
     
         

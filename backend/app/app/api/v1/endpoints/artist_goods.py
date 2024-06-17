@@ -12,7 +12,11 @@ from app.models.account_model import Account
 from app.schemas.artist_schema import IArtistRead
 from app.models.artist_goods_model import ArtistGoods
 from app.models.image_media_model import ImageMedia
-from app.schemas.artist_goods_deal_schema import IArtistGoodsDealCreate, IArtistGoodsDealRead
+from app.schemas.artist_goods_deal_schema import (
+    IArtistGoodsDealCreate,
+    IArtistGoodsDealRead,
+    IArtistGoodsDealUpdate,
+)
 from app.models.artist_goods_deal_model import ArtistGoodsDeal
 from fastapi import HTTPException
 from io import BytesIO
@@ -76,7 +80,9 @@ from pydantic import BaseModel, ValidationError
 from app.deps import user_deps, role_deps, auth_deps
 import cloudinary.uploader
 from app.core.config import settings
+
 router = APIRouter()
+
 
 @router.get("/")
 async def get_artist_goods_list(
@@ -88,7 +94,7 @@ async def get_artist_goods_list(
     """
     Gets a paginated list of projects
     """
-    time.sleep(1)
+    # time.sleep(1)
     query = None
 
     query = select(crud.artist_goods.model).where(
@@ -161,7 +167,9 @@ async def create_artist_goods(
     return create_response(data=artist_goods)
 
 
-@router.put("/",)
+@router.put(
+    "/",
+)
 async def update_artist_goods(
     # artist_goods_id: UUID,
     new_artist_goods: IArtistGoodsUpdate,
@@ -192,9 +200,12 @@ async def get_my_artist_goods_list(
     Gets a paginated list of projects
     """
 
-    query = select(crud.artist_goods.model).where(
-        crud.artist_goods.model.artist_id == current_account.artist.id
-    ).order_by(crud.artist_goods.model.status.desc()).order_by(crud.artist_goods.model.created_at.desc())
+    query = (
+        select(crud.artist_goods.model)
+        .where(crud.artist_goods.model.artist_id == current_account.artist.id)
+        .order_by(crud.artist_goods.model.status.desc())
+        .order_by(crud.artist_goods.model.created_at.desc())
+    )
 
     artist_goods_list = await crud.artist_goods.get_multi_paginated(
         params=params, query=query
@@ -227,6 +238,30 @@ async def create_artist_goods_deal(
     return create_response(data=artist_goods_deal)
 
 
+@router.put("/deal", status_code=status.HTTP_201_CREATED)
+async def update_artist_goods_deal(
+    new_artist_goods_deal: IArtistGoodsDealUpdate,
+    current_account: Account = Depends(deps.get_current_account()),
+) -> IPostResponseBase[IArtistGoodsDealRead]:
+    """
+    Creates a new user
+
+    Required roles:
+    - admin
+    """
+
+    if current_account.company_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="company_id is required"
+        )
+    
+    artist_goods_deal = await crud.artist_goods_deal.update(
+        obj_in=new_artist_goods_deal, company_id=current_account.company.id
+    )
+
+    return create_response(data=artist_goods_deal)
+
+
 @router.get("/deal/my")
 async def get_my_artist_goods_deal(
     params: Params = Depends(),
@@ -250,27 +285,61 @@ async def get_my_artist_goods_deal(
 
     return create_response(data=artist_goods_deal_list)
 
+@router.delete("/deal/{artist_goods_deal_id}")
+async def delete_artist_goods_deal(
+    artist_goods_deal_id: UUID,
+    current_account: Account = Depends(deps.get_current_account()),
+) -> IPostResponseBase[IArtistGoodsDealRead]:
+    """
+    Creates a new user
+
+    Required roles:
+    - admin
+    """
+
+    artist_goods_deal = await crud.artist_goods_deal.get(id=artist_goods_deal_id)
+
+    if artist_goods_deal:
+        if current_account.company_id is None or artist_goods_deal.company_id != current_account.company_id:
+            raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+        await crud.artist_goods_deal.remove(id=artist_goods_deal_id)
+        return create_response(data=artist_goods_deal)
+
+
 @router.get("/deal/{artist_goods_deal_id}")
 async def get_artist_goods_deal_by_id(
     artist_goods_deal_id: UUID,
+    is_edit: bool = Query(False),
     current_account: Account = Depends(deps.get_current_account()),
 ) -> IPostResponseBase[IArtistGoodsDealRead]:
     """
     Gets a project by its id
     """
 
-
     artist_goods_deal = await crud.artist_goods_deal.get(id=artist_goods_deal_id)
 
     if artist_goods_deal:
+        if is_edit:
+            if (
+                current_account.company_id is None
+                or artist_goods_deal.company_id != current_account.company_id
+            ):
 
-        if current_account.artist_id and artist_goods_deal.artist_id != current_account.artist_id:
-      
-            raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
-        
-        if current_account.company_id and artist_goods_deal.company_id != current_account.company_id:
-        
-            raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+                raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+        else:
+            if (
+                current_account.artist_id
+                and artist_goods_deal.artist_id != current_account.artist_id
+            ):
+
+                raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+
+            if (
+                current_account.company_id
+                and artist_goods_deal.company_id != current_account.company_id
+            ):
+
+                raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
 
         artist_goods_deal.request_image_list = json.loads(
             artist_goods_deal.request_image_list
@@ -279,7 +348,8 @@ async def get_artist_goods_deal_by_id(
         return create_response(data=artist_goods_deal)
     else:
         raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
-    
+
+
 @router.put("/deal/{artist_goods_deal_id}/accept", status_code=status.HTTP_201_CREATED)
 async def accept_artist_goods_deal(
     artist_goods_deal_id: UUID,
@@ -289,25 +359,23 @@ async def accept_artist_goods_deal(
     Gets a project by its id
     """
 
-
     artist_goods_deal = await crud.artist_goods_deal.get(id=artist_goods_deal_id)
 
     if artist_goods_deal:
 
-        if current_account.artist_id and artist_goods_deal.artist_id == current_account.artist_id:
-            
-            await crud.artist_goods_deal.update(obj_current=artist_goods_deal, obj_new = {
-                'status' : 'accept'
-            })
-            
+        if (
+            current_account.artist_id
+            and artist_goods_deal.artist_id == current_account.artist_id
+        ):
+
+            await crud.artist_goods_deal.update(
+                obj_current=artist_goods_deal, obj_new={"status": "accept"}
+            )
+
             return create_response(data=artist_goods_deal)
         else:
             raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
-       
 
-        
-
-       
     else:
         raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
 
@@ -323,7 +391,7 @@ async def get_artist_goods_by_id(
     """
     Gets a project by its id
     """
-    time.sleep(1)
+    # time.sleep(1)
 
     artist_goods = await crud.artist_goods.get(id=artist_goods_id)
 
@@ -339,8 +407,8 @@ async def get_artist_goods_by_id(
         else:
             if artist_goods.status == "draft" or artist_goods.status == "pending":
                 if (
-                current_account is None
-                or artist_goods.artist_id != current_account.artist.id
+                    current_account is None
+                    or artist_goods.artist_id != current_account.artist.id
                 ):
                     raise IdNotFoundException(ArtistGoods, artist_goods_id)
 
@@ -374,5 +442,3 @@ async def get_artist_goods_by_id(
         return create_response(data=artist_goods)
     else:
         raise IdNotFoundException(ArtistGoods, artist_goods_id)
-
-   
