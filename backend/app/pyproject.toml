@@ -58,6 +58,8 @@ celery-sqlalchemy-scheduler = "^0.3.0"
 psycopg2-binary = "^2.9.5"
 transformers = "^4.27.3"
 cloudinary = "^1.40.0"
+sse-starlette = "^2.1.2"
+aioredis = "^2.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^5.2"
