@@ -220,17 +220,30 @@ async def notification(
 
 @app.get("/sse/make-notify")
 async def make_notification(redis: Redis = Depends(get_redis_client)):
-    await make_notify(
-        redis,
-        INotifyCreate(
-            receiver_id=[UUID("018f8ecc-7231-7e3b-abde-7af9e38ae6c0")],
-            title="Hello",
-            description="Hello World",
-            type="info",
-            action="ddd",
-            created_at=int(time.time() * 1000)
-        ),
-    )
+    if settings.ENVIRONMENT == "dev":
+        await make_notify(
+            redis,
+            INotifyCreate(
+                receiver_id=[UUID("018f8ecc-7231-7e3b-abde-7af9e38ae6c0")],
+                title="Hello",
+                description="Hello World",
+                type="info",
+                action="ddd",
+                created_at=int(time.time() * 1000)
+            ),
+        )
+    else:
+        await make_notify(
+            redis,
+            INotifyCreate(
+                receiver_id=[UUID("018f8ee2-26b1-79e4-9d8b-b6a4b4f5ca97")],
+                title="Hello",
+                description="Hello World",
+                type="info",
+                action="ddd",
+                created_at=int(time.time() * 1000)
+            ),
+        )
     return {"message": "Notification sent!"}
 
 
