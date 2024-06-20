@@ -1,12 +1,16 @@
 import gc
 import sys
 from typing import Any
+from uuid import UUID
 from app.api import deps
 from app.models.account_model import Account
+from app.utils.notify import make_notify
+from app.schemas.notify_schema import INotifyCreate
 from fastapi import FastAPI, Request
 from app.api.deps import get_current_account, get_redis_client
 from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.api.v1.api import api_router as api_router_v1
 from app.core.config import settings
 from fastapi_cache import FastAPICache
@@ -37,6 +41,28 @@ import signal
 import asyncio
 import time
 
+from http import HTTPStatus
+from typing import Final
+
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.requests import Request
+from starlette.responses import Response
+
+class SuppressNoResponseReturnedMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        try:
+            response = await call_next(request)
+        except RuntimeError as e:
+            print(await request.is_disconnected(), str(e))
+            if await request.is_disconnected() or str(e) == "No response returned.":
+            
+                print("!!")
+                return Response(status_code=HTTPStatus.NO_CONTENT)
+            else:
+                print("@@@")
+                raise
+
+        return response
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -61,9 +87,7 @@ async def lifespan(app: FastAPI):
     # shutdown
     await FastAPICache.clear()
     print("shutdown fastapi")
-    
 
-    
     # models.clear()
     # g.cleanup()
     gc.collect()
@@ -95,17 +119,8 @@ app.add_middleware(
         "max_overflow": 64,
     },
 )
-app.add_middleware(GlobalsMiddleware)
 
-# Set all CORS origins enabled
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+app.add_middleware(SuppressNoResponseReturnedMiddleware)
 
 
 class CustomException(Exception):
@@ -133,55 +148,65 @@ async def root():
     }
 
 
-async def listen_to_channel(user_id: str, redis: Redis):
+async def listen_to_channel(user_id: UUID, redis: Redis):
     # Create message listener and subscr    be on the event source channel
-
-
 
     try:
         async with redis.pubsub() as listener:
-            await listener.subscribe("event_source_channel")
+            await listener.subscribe("notify_channel")
 
             async def before_exit(*args):
-                print("Closing" )
+
                 await listener.close()
-                print("Closed112")
+
                 await redis.close()
-                print("Closed12313213")
-                sys.exit(0)
-            
-            
-            signal.signal(signal.SIGTERM, lambda *args: asyncio.create_task(before_exit(*args)))
+                time.sleep(3)
+                # sys.exit(0)
+
+            signal.signal(
+                signal.SIGTERM, lambda *args: asyncio.create_task(before_exit(*args))
+            )
 
             # Create a generator that will 'yield' our data into opened TLS connection
             while True:
                 message = await listener.get_message()
+              
                 if message is None:
                     continue
+                else:
+                    print(message, "!!")
                 if message.get("type") == "message":
-                    print(message)
-                    message = json.loads(message["data"])
+             
+                    data = json.loads(message["data"])
                     # Checking, if the user that opened this SSE conection
                     # is recipient of the message or not.
                     # The message obj has field recipient_id to compare.
-                    
-                    if message.get("recipient_id") == user_id or message.get("recipient_id") == "all":
-                        yield {"data": json.dumps(message)}
+           
+                    if data["receiver_id"] == "all" or str(user_id) in data["receiver_id"]:
+                        del data["receiver_id"]
+                        yield {"data": json.dumps(data)}
     except Exception as e:
         print(e)
 
-# This is where the error is thrown
+        # This is where the error is thrown
         print("Cancelled")
     finally:
-        await listener.unsubscribe("event_source_channel")
+        await listener.unsubscribe("notify_channel")
         await listener.close()
 
 
+@app.get("/flush")
+async def flush(redis: Redis = Depends(get_redis_client)):
+    await redis.flushall()
+    return {"message": "Flushed"}
+
 # SSE implementation
 @app.get("/sse/notify")
-async def notification(request: Request, redis: Redis = Depends(get_redis_client),
-                       current_account: Account = Depends(deps.get_current_account()),
-                       ):
+async def notification(
+    request: Request,
+    redis: Redis = Depends(get_redis_client),
+    current_account: Account = Depends(deps.get_current_account()),
+):
     if current_account is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -192,8 +217,31 @@ async def notification(request: Request, redis: Redis = Depends(get_redis_client
 
 @app.get("/sse/make-notify")
 async def make_notification(redis: Redis = Depends(get_redis_client)):
-    await redis.publish("event_source_channel", json.dumps({"message": "즐거우세요?", "recipient_id": "all"}))
+    await make_notify(
+        redis,
+        INotifyCreate(
+            receiver_id=[UUID("018f8ecc-7231-7e3b-abde-7af9e38ae6c0")],
+            title="Hello",
+            description="Hello World",
+            type="info",
+            action="ddd",
+            created_at=datetime.datetime.now(),
+        ),
+    )
     return {"message": "Notification sent!"}
+
+
+app.add_middleware(GlobalsMiddleware)
+
+# Set all CORS origins enabled
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 # Add Routers
