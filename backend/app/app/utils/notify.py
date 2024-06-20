@@ -27,12 +27,31 @@ async def make_notify(redis: Redis, message: INotifyCreate):
     return {"message": "Notification sent"}
 
 
-async def get_notify(redis : Redis, account_id : UUID):
+async def get_notify(redis : Redis, account_id : UUID, is_read : bool = False):
     notify_key = f"notify:{account_id}"
+    notify_read_key = f"notify:read:{account_id}"
+    
     messages = await redis.lrange(notify_key, 0, -1)
     
     if messages:
-        return [json.loads(message) for message in messages]
+        data = [json.loads(message) for message in messages]
+        
+        if is_read:
+            await redis.set(notify_read_key, data[-1].get("created_at"))
+            
+        return data
     else : 
         return []
     
+    
+
+async def delete_notify(redis: Redis, account_id: UUID, notify : INotifyCreate):
+    notify_key = f"notify:{account_id}"
+    
+    await redis.lrem(notify_key, 0, notify.json())
+    
+    
+async def delete_notify_all(redis: Redis, account_id: UUID):
+    notify_key = f"notify:{account_id}"
+    
+    await redis.delete(notify_key)

@@ -27,13 +27,13 @@ class INotifyCreate(BaseModel):
     description : str
     type : str
     action : str
-    created_at : datetime
+    created_at : int
     
     
 class INotifyRead(BaseModel):
-
+    receiver_id : list[UUID] | str
     title : str | None
     description : str | None
     type : str | None
     action : str | None
-    created_at : datetime | None
+    created_at : int | None

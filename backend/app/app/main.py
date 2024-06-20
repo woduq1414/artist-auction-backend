@@ -169,8 +169,9 @@ async def listen_to_channel(user_id: UUID, redis: Redis):
 
             # Create a generator that will 'yield' our data into opened TLS connection
             while True:
+       
                 message = await listener.get_message()
-              
+                
                 if message is None:
                     continue
                 else:
@@ -185,6 +186,8 @@ async def listen_to_channel(user_id: UUID, redis: Redis):
                     if data["receiver_id"] == "all" or str(user_id) in data["receiver_id"]:
                         del data["receiver_id"]
                         yield {"data": json.dumps(data)}
+                        
+                # await asyncio.sleep(1)
     except Exception as e:
         print(e)
 
@@ -225,7 +228,7 @@ async def make_notification(redis: Redis = Depends(get_redis_client)):
             description="Hello World",
             type="info",
             action="ddd",
-            created_at=datetime.datetime.now(),
+            created_at=int(time.time() * 1000)
         ),
     )
     return {"message": "Notification sent!"}
