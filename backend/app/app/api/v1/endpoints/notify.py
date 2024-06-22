@@ -54,11 +54,14 @@ async def get_noitfy_api(
     """
     notify_read_key = f"notify:read:{current_account.id}"
     notify_read = await redis_client.get(notify_read_key)
-    
-    notify_list = await get_notify(
-        redis=redis_client, account_id=current_account.id, is_read=is_read
-    )
 
+    user_id = current_account.id
+    if current_account.company_id:
+        user_id = current_account.company_id
+    elif current_account.artist_id:
+        user_id = current_account.artist_id
+
+    notify_list = await get_notify(redis=redis_client, user_id=user_id, is_read=is_read)
 
     return create_response(
         data={"notify_list": notify_list, "notify_read": notify_read},
@@ -75,24 +78,30 @@ async def delete_notify_api(
     """
     delete notify
     """
+    user_id = current_account.id
+    if current_account.company_id:
+        user_id = current_account.company_id
+    elif current_account.artist_id:
+        user_id = current_account.artist_id
 
-    await delete_notify(
-        redis=redis_client, account_id=current_account.id, notify=notify
-    )
+    await delete_notify(redis=redis_client, user_id=user_id, notify=notify)
 
     return create_response(data=None, message="delete notify list")
 
 
 @router.delete("/all")
 async def delete_notify_all_api(
-   
     current_account: Account = Depends(deps.get_current_account()),
     redis_client: Redis = Depends(get_redis_client),
 ) -> IPostResponseBase[None]:
     """
     delete notify
     """
-
-    await delete_notify_all(redis=redis_client, account_id=current_account.id)
+    user_id = current_account.id
+    if current_account.company_id:
+        user_id = current_account.company_id
+    elif current_account.artist_id:
+        user_id = current_account.artist_id
+    await delete_notify_all(redis=redis_client, user_id=user_id)
 
     return create_response(data=None, message="delete all notify list")

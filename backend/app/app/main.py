@@ -215,7 +215,12 @@ async def notification(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    return EventSourceResponse(listen_to_channel(current_account.id, redis))
+    user_id = current_account.id
+    if current_account.company_id:
+        user_id = current_account.company_id
+    elif current_account.artist_id:
+        user_id = current_account.artist_id
+    return EventSourceResponse(listen_to_channel(user_id, redis))
 
 
 @app.get("/sse/make-notify")
@@ -224,8 +229,8 @@ async def make_notification(redis: Redis = Depends(get_redis_client)):
         await make_notify(
             redis,
             INotifyCreate(
-                receiver_id=[UUID("018f8ecc-7231-7e3b-abde-7af9e38ae6c0")],
-                title="Hello",
+                receiver_id=[UUID("018f8ecc-7210-7825-a2fd-5f9f6e3447ae")],
+                title="[sdfsdf] sdfdsfa123",
                 description="Hello World",
                 type="info",
                 action="ddd",

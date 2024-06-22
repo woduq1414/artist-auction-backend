@@ -18,6 +18,8 @@ from app.schemas.artist_goods_deal_schema import (
     IArtistGoodsDealUpdate,
 )
 from app.models.artist_goods_deal_model import ArtistGoodsDeal
+from app.utils.notify import make_notify
+from app.schemas.notify_schema import INotifyCreate
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Optional
@@ -224,6 +226,7 @@ async def create_artist_goods_deal(
     new_artist_goods_deal: IArtistGoodsDealCreate,
     current_account: Account = Depends(deps.get_current_account()),
     db_session=Depends(deps.get_db),
+    redis_client: Redis = Depends(deps.get_redis_client),
 ) -> IPostResponseBase[IArtistGoodsDealRead]:
     """
     Creates a new user
@@ -256,6 +259,18 @@ async def create_artist_goods_deal(
         obj_in=new_artist_goods_deal, company_id=current_account.company.id
     )
 
+    await make_notify(
+        redis=redis_client,
+        message=INotifyCreate(
+            receiver_id=[artist_goods_deal.artist_id],
+            title=f"[{current_account.company.nickname}] 님이 [{artist_goods_deal.artist_goods.title}] 상품에 대해 거래를 요청하였습니다.",
+            description=f"거래 등록",
+            type="artist_goods",
+            action=f"artist_goods_deal/{artist_goods_deal.id}",
+            created_at=int(time.time() * 1000),
+        ),
+    )
+
     return create_response(data=artist_goods_deal)
 
 
@@ -263,6 +278,7 @@ async def create_artist_goods_deal(
 async def update_artist_goods_deal(
     new_artist_goods_deal: IArtistGoodsDealUpdate,
     current_account: Account = Depends(deps.get_current_account()),
+    redis_client: Redis = Depends(deps.get_redis_client),
 ) -> IPostResponseBase[IArtistGoodsDealRead]:
     """
     Creates a new user
@@ -278,6 +294,18 @@ async def update_artist_goods_deal(
 
     artist_goods_deal = await crud.artist_goods_deal.update(
         obj_in=new_artist_goods_deal, company_id=current_account.company.id
+    )
+
+    await make_notify(
+        redis=redis_client,
+        message=INotifyCreate(
+            receiver_id=[artist_goods_deal.artist_id],
+            title=f"[{current_account.company.nickname}] 님이 [{artist_goods_deal.artist_goods.title}] 상품에 대한 거래 내용을 수정하였습니다.",
+            description=f"거래 수정",
+            type="artist_goods",
+            action=f"artist_goods_deal/{artist_goods_deal.id}",
+            created_at=int(time.time() * 1000),
+        ),
     )
 
     return create_response(data=artist_goods_deal)
@@ -384,6 +412,7 @@ async def get_artist_goods_deal_by_id(
 async def accept_artist_goods_deal(
     artist_goods_deal_id: UUID,
     current_account: Account = Depends(deps.get_current_account()),
+    redis_client: Redis = Depends(deps.get_redis_client),
 ) -> IPostResponseBase[IArtistGoodsDealRead]:
     """
     Gets a project by its id
@@ -401,7 +430,17 @@ async def accept_artist_goods_deal(
             await crud.artist_goods_deal.update_by_dict(
                 obj_current=artist_goods_deal, obj_new={"status": "accept"}
             )
-
+            await make_notify(
+                redis=redis_client,
+                message=INotifyCreate(
+                    receiver_id=[artist_goods_deal.company_id],
+                    title=f"[{current_account.artist.nickname}] 님이 [{artist_goods_deal.artist_goods.title}] 상품에 대한 거래를 수락하였습니다.",
+                    description=f"거래 수락",
+                    type="artist_goods",
+                    action=f"artist_goods_deal/{artist_goods_deal.id}",
+                    created_at=int(time.time() * 1000),
+                ),
+            )
             return create_response(data=artist_goods_deal)
         else:
             raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)

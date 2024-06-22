@@ -1,7 +1,11 @@
 from app.schemas.artist_schema import IArtistInfoEdit, IArtistInfoRead, IArtistRegister
 from app.schemas.common_schema import IAccountTypeEnum, ILoginTypeEnum
 from app.schemas.account_schema import IAccountBasicInfo, IAccountRead
-from app.schemas.company_schema import ICompanyInfoEdit, ICompanyInfoRead, ICompanyRegister
+from app.schemas.company_schema import (
+    ICompanyInfoEdit,
+    ICompanyInfoRead,
+    ICompanyRegister,
+)
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Any
@@ -87,6 +91,52 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 
 router = APIRouter()
+
+
+@router.get("/check-nickname")
+async def check_nickname_api(nickname: str = Query(...)) -> IGetResponseBase[None]:
+    """
+    Check if nickname exists
+    """
+
+    await auth_deps.nickname_exists(nickname)
+
+    return create_response(data=None)
+
+
+@router.put("/profile-image")
+async def update_profile_image(
+    image_media_id: UUID,
+    current_account: Account = Depends(deps.get_current_account()),
+    db_session=Depends(deps.get_db),
+    redis_client: Redis = Depends(deps.get_redis_client),
+):
+    """
+    Updates the profile image of the user
+    """
+    print(image_media_id)
+
+    image_media = await crud.image.get_image_media_by_id(
+        id=image_media_id, db_session=db_session
+    )
+
+    if current_account.artist_id:
+        artist = current_account.artist
+        artist.profile_image = image_media
+        db_session.add(artist)
+    elif current_account.company_id:
+        company = current_account.company
+        company.profile_image = image_media
+        db_session.add(company)
+    await db_session.commit()
+
+    data = await auth_deps.get_token_by_account(
+        account=current_account, redis_client=redis_client
+    )
+
+    response = create_response(data={"accessToken": data.access_token})
+
+    return response
 
 
 @router.get("/me")
@@ -405,9 +455,7 @@ async def edit_profile(
 
         if edit_data.description is not None:
             company.description = edit_data.description
-            
-            
-            
+
         await crud.company.update(obj_in=company, db_session=db_session)
 
         data = await auth_deps.get_token_by_account(
@@ -425,7 +473,7 @@ async def get_account_profile(
     """
     Gets the profile of the user
     """
-    
+
     account = await crud.account.get(id=account_id)
     if account is None:
         raise IdNotFoundException(Account, account_id)
@@ -435,7 +483,7 @@ async def get_account_profile(
     elif account.company_id:
         company = await crud.company.get(id=account.company_id)
         return create_response(data=company)
-    
+
 
 @router.get("/artist/{artist_id}")
 async def get_account_id_by_artist_id(
@@ -444,7 +492,7 @@ async def get_account_id_by_artist_id(
     """
     Gets the profile of the user
     """
-    
+
     account = await crud.account.get_by_artist_id(artist_id=artist_id)
     if account is None:
         raise IdNotFoundException(Account, artist_id)
@@ -458,9 +506,9 @@ async def get_account_id_by_company_id(
     """
     Gets the profile of the user
     """
-    
+
     account = await crud.account.get_by_company_id(company_id=company_id)
     if account is None:
         raise IdNotFoundException(Account, company_id)
-    
+
     return create_response(data=account)

@@ -27,9 +27,9 @@ async def make_notify(redis: Redis, message: INotifyCreate):
     return {"message": "Notification sent"}
 
 
-async def get_notify(redis : Redis, account_id : UUID, is_read : bool = False):
-    notify_key = f"notify:{account_id}"
-    notify_read_key = f"notify:read:{account_id}"
+async def get_notify(redis : Redis, user_id : UUID, is_read : bool = False):
+    notify_key = f"notify:{user_id}"
+    notify_read_key = f"notify:read:{user_id}"
     
     messages = await redis.lrange(notify_key, 0, -1)
     
@@ -45,13 +45,13 @@ async def get_notify(redis : Redis, account_id : UUID, is_read : bool = False):
     
     
 
-async def delete_notify(redis: Redis, account_id: UUID, notify : INotifyCreate):
-    notify_key = f"notify:{account_id}"
+async def delete_notify(redis: Redis, user_id: UUID, notify : INotifyCreate):
+    notify_key = f"notify:{user_id}"
     
     await redis.lrem(notify_key, 0, notify.json())
     
     
-async def delete_notify_all(redis: Redis, account_id: UUID):
-    notify_key = f"notify:{account_id}"
+async def delete_notify_all(redis: Redis, user_id: UUID):
+    notify_key = f"notify:{user_id}"
     
     await redis.delete(notify_key)

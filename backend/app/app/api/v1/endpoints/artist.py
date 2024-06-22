@@ -87,44 +87,6 @@ class Base(BaseModel):
 
 
 
-@router.get("/check-nickname")
-async def check_artist_nickname(nickname: str = Query(...)) -> IGetResponseBase[None]:
-    """
-    Check if nickname exists
-    """
 
-    await auth_deps.nickname_exists(nickname)
-
-    return create_response(data=None)
-
-
-@router.put("/profile-image")
-async def update_profile_image(
-    image_media_id: UUID,
-    current_account: Account = Depends(deps.get_current_account()),
-    db_session=Depends(deps.get_db),
-    redis_client: Redis = Depends(deps.get_redis_client),
-):
-    """
-    Updates the profile image of the user
-    """
-    print(image_media_id)
-    artist = current_account.artist
-
-    image_media = await crud.image.get_image_media_by_id(
-        id=image_media_id, db_session=db_session
-    )
-    artist.profile_image = image_media
-
-    db_session.add(artist)
-    await db_session.commit()
-
-    data = await auth_deps.get_token_by_account(
-        account=current_account, redis_client=redis_client
-    )
-
-    response = create_response(data={"accessToken": data.access_token})
-
-    return response
 
 
