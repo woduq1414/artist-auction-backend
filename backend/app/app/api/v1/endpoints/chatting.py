@@ -114,8 +114,33 @@ async def get_chatting_list(
         chatting_list = await crud.chatting.get_by_company_id(
             company_id=current_account.company_id,
         )
+    last_message_dict = await redis_client.hgetall(
+        f"chatting_last_message:{current_account.artist_id if current_account_type == 'artist' else current_account.company_id}",
+    )
 
-    return create_response(data=chatting_list)
+    result = []
+    for chatting in chatting_list:
+        result.append(
+            IChattingRead(
+                id=chatting.id,
+                artist=chatting.artist if current_account_type == "company" else None,
+                company=chatting.company if current_account_type == "artist" else None,
+                created_at=chatting.created_at,
+                content=None,
+                last_message=last_message_dict.get(
+                    str(
+                        chatting.company_id
+                        if current_account_type == "artist"
+                        else chatting.artist_id
+                    ),
+                    None,
+                ),
+            )
+        )
+
+    # for chatting in chatting_list:
+
+    return create_response(data=result)
 
 
 @router.get("/{target_user_id}")
@@ -255,26 +280,16 @@ async def add_chat(
 
     current_account_type = current_account.account_type
     target_user = None
-    chatting = None
-    my_user_id = None
-    if current_account_type == "artist":
-        chatting = await crud.chatting.get_by_users(
-            artist_id=current_account.artist_id,
-            company_id=target_user_id,
-        )
-        my_user_id = current_account.artist_id
 
+    my_user_id = None
+    redis_key = ""
+    if current_account_type == "artist":
+        my_user_id = current_account.artist_id
+        redis_key = f"chatting:{current_account.artist_id}-{target_user_id}"
     elif current_account_type == "company":
-        chatting = await crud.chatting.get_by_users(
-            artist_id=target_user_id,
-            company_id=current_account.company_id,
-        )
         my_user_id = current_account.company_id
 
-    if not chatting:
-        raise IdNotFoundException(User, target_user_id)
-
-    redis_key = f"chatting:{chatting.artist_id}-{chatting.company_id}"
+        redis_key = f"chatting:{target_user_id}-{current_account.company_id}"
 
     data = {
         "created_at": int(time.time() * 1000),
@@ -284,6 +299,17 @@ async def add_chat(
     }
 
     await redis_client.rpush(redis_key, json.dumps(data))
+
+    await redis_client.hset(
+        f"chatting_last_message:{my_user_id}",
+        str(target_user_id),
+        message,
+    )
+    await redis_client.hset(
+        f"chatting_last_message:{target_user_id}",
+        str(my_user_id),
+        message,
+    )
 
     data["sender"] = "you"
 

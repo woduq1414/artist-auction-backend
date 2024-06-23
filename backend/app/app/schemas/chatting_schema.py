@@ -45,6 +45,7 @@ class IChattingRead(ChattingBase):
     redis_key : str | None
     artist : IArtistSimpleInfoRead | None
     company : ICompanySimpleInfoRead | None
+    last_message : str | None
 
 
 class IChattingRegister(IChattingCreate, IAccountCreate):
