@@ -75,6 +75,11 @@ class IUserBasicInfo(BaseModel):
     id: UUID
 
 
+class IArtistSimpleInfoRead(SQLModel):
+    id: UUID
+    nickname: str
+    profile_image: IImageMediaRead | None
+
 
 class IArtistInfoEdit(SQLModel):
     email : str | None
