@@ -118,6 +118,10 @@ async def get_chatting_list(
         f"chatting_last_message:{current_account.artist_id if current_account_type == 'artist' else current_account.company_id}",
     )
 
+    unread_count_dict = await redis_client.hgetall(
+        f"chatting_unread_count:{current_account.artist_id if current_account_type == 'artist' else current_account.company_id}",
+    )
+
     result = []
     for chatting in chatting_list:
         result.append(
@@ -134,6 +138,16 @@ async def get_chatting_list(
                         else chatting.artist_id
                     ),
                     None,
+                ),
+                unread_count=int(
+                    unread_count_dict.get(
+                        str(
+                            chatting.company_id
+                            if current_account_type == "artist"
+                            else chatting.artist_id
+                        ),
+                        0,
+                    )
                 ),
             )
         )
@@ -309,6 +323,21 @@ async def add_chat(
         f"chatting_last_message:{target_user_id}",
         str(my_user_id),
         message,
+    )
+
+    old_chatting_unread_count = await redis_client.hget(
+        f"chatting_unread_count:{target_user_id}",
+        str(my_user_id),
+    )
+    if old_chatting_unread_count:
+        new_chatting_unread_count = int(old_chatting_unread_count) + 1
+    else:
+        new_chatting_unread_count = 1
+
+    await redis_client.hset(
+        f"chatting_unread_count:{target_user_id}",
+        str(my_user_id),
+        new_chatting_unread_count,
     )
 
     data["sender"] = "you"

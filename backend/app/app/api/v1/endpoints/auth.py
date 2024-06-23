@@ -6,6 +6,8 @@ from app.schemas.company_schema import (
     ICompanyInfoRead,
     ICompanyRegister,
 )
+from app.models.artist_model import Artist
+from app.models.company_model import Company
 from fastapi import HTTPException
 from io import BytesIO
 from typing import Annotated, Any
@@ -464,6 +466,34 @@ async def edit_profile(
 
         response = create_response(data={"accessToken": data.access_token})
         return response
+
+@router.get("/profile/artist/{artist_id}")
+async def get_artist_profile(
+    artist_id: UUID,
+) -> IGetResponseBase[IArtistInfoRead]:
+    """
+    Gets the profile of the user
+    """
+
+    artist = await crud.artist.get(id=artist_id)
+    if artist is None:
+        raise IdNotFoundException(Artist, artist_id)
+
+    return create_response(data=artist)
+
+@router.get("/profile/company/{company_id}")
+async def get_company_profile(
+    company_id: UUID,
+) -> IGetResponseBase[ICompanyInfoRead]:
+    """
+    Gets the profile of the user
+    """
+
+    company = await crud.company.get(id=company_id)
+    if company is None:
+        raise IdNotFoundException(Company, company_id)
+
+    return create_response(data=company)
 
 
 @router.get("/profile/{account_id}")
