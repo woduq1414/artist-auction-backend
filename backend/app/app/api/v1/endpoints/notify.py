@@ -63,8 +63,16 @@ async def get_noitfy_api(
 
     notify_list = await get_notify(redis=redis_client, user_id=user_id, is_read=is_read)
 
+    chatting_unread_count_dict = await redis_client.hgetall(
+        f"chatting_unread_count:{current_account.artist_id if current_account.account_type == 'artist' else current_account.company_id}",
+    )
+    
+    s = 0
+    for key in chatting_unread_count_dict.keys():
+        s += int(chatting_unread_count_dict[key])
+    
     return create_response(
-        data={"notify_list": notify_list, "notify_read": notify_read},
+        data={"notify_list": notify_list, "notify_read": notify_read, "chatting_unread_count": s},
         message="get notify list",
     )
 

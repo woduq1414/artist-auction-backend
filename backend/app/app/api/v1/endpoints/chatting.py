@@ -200,6 +200,23 @@ async def get_chatting_room(
         chatting_data = [
             processChattingData(json.loads(data)) for data in chatting_data
         ]
+        
+    if current_account_type == "artist":
+        my_user_id = current_account.artist_id
+    elif current_account_type == "company":
+        my_user_id = current_account.company_id
+
+    await redis_client.hset(
+        f"chatting_unread_count:{my_user_id}",
+        str(target_user_id),
+        0,
+    )
+    
+    await redis_client.hset(
+        f"chatting_last_read_at:{my_user_id}",
+        str(target_user_id),
+        int(time.time() * 1000),
+    )
 
     result = IChattingRead(
         id=chatting.id,
@@ -207,6 +224,10 @@ async def get_chatting_room(
         company=chatting.company if current_account_type == "artist" else None,
         created_at=chatting.created_at,
         content=chatting_data,
+        last_read_at=await redis_client.hget(
+            f"chatting_last_read_at:{target_user_id}",
+            str(my_user_id),
+        ),
     )
 
     return create_response(data=result)
@@ -277,6 +298,7 @@ async def make_chatting_room(
     chatting_data = []
 
     return create_response(data=chatting)
+
 
 
 @router.put("/{target_user_id}")
@@ -356,3 +378,35 @@ async def add_chat(
     )
 
     return create_response(data=data)
+
+
+@router.put("/{target_user_id}/read")
+async def read_chat(
+    target_user_id: UUID,
+    current_account: Account = Depends(deps.get_current_account()),
+    redis_client: Redis = Depends(deps.get_redis_client),
+) -> Any:
+    """
+    Get a user by id
+    """
+
+    current_account_type = current_account.account_type
+    my_user_id = None
+    if current_account_type == "artist":
+        my_user_id = current_account.artist_id
+    elif current_account_type == "company":
+        my_user_id = current_account.company_id
+
+    await redis_client.hset(
+        f"chatting_unread_count:{my_user_id}",
+        str(target_user_id),
+        0,
+    )
+    
+    await redis_client.hset(
+        f"chatting_last_read_at:{my_user_id}",
+        str(target_user_id),
+        int(time.time() * 1000),
+    )
+
+    return create_response(data=None)

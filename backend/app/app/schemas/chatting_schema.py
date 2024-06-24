@@ -47,6 +47,7 @@ class IChattingRead(ChattingBase):
     company : ICompanySimpleInfoRead | None
     last_message : str | None
     unread_count : int | None
+    last_read_at : int | None
 
 
 class IChattingRegister(IChattingCreate, IAccountCreate):
