@@ -124,33 +124,39 @@ async def get_chatting_list(
 
     result = []
     for chatting in chatting_list:
-        result.append(
-            IChattingRead(
-                id=chatting.id,
-                artist=chatting.artist if current_account_type == "company" else None,
-                company=chatting.company if current_account_type == "artist" else None,
-                created_at=chatting.created_at,
-                content=None,
-                last_message=last_message_dict.get(
-                    str(
-                        chatting.company_id
-                        if current_account_type == "artist"
-                        else chatting.artist_id
-                    ),
-                    None,
-                ),
-                unread_count=int(
-                    unread_count_dict.get(
-                        str(
-                            chatting.company_id
-                            if current_account_type == "artist"
-                            else chatting.artist_id
-                        ),
-                        0,
-                    )
-                ),
-            )
+        last_message = last_message_dict.get(
+            str(
+                chatting.company_id
+                if current_account_type == "artist"
+                else chatting.artist_id
+            ),
+            None,
         )
+        if last_message:
+            result.append(
+                IChattingRead(
+                    id=chatting.id,
+                    artist=(
+                        chatting.artist if current_account_type == "company" else None
+                    ),
+                    company=(
+                        chatting.company if current_account_type == "artist" else None
+                    ),
+                    created_at=chatting.created_at,
+                    content=None,
+                    last_message=last_message,
+                    unread_count=int(
+                        unread_count_dict.get(
+                            str(
+                                chatting.company_id
+                                if current_account_type == "artist"
+                                else chatting.artist_id
+                            ),
+                            0,
+                        )
+                    ),
+                )
+            )
 
     # for chatting in chatting_list:
 
@@ -200,7 +206,7 @@ async def get_chatting_room(
         chatting_data = [
             processChattingData(json.loads(data)) for data in chatting_data
         ]
-        
+
     if current_account_type == "artist":
         my_user_id = current_account.artist_id
     elif current_account_type == "company":
@@ -211,7 +217,7 @@ async def get_chatting_room(
         str(target_user_id),
         0,
     )
-    
+
     await redis_client.hset(
         f"chatting_last_read_at:{my_user_id}",
         str(target_user_id),
@@ -226,6 +232,10 @@ async def get_chatting_room(
         content=chatting_data,
         last_read_at=await redis_client.hget(
             f"chatting_last_read_at:{target_user_id}",
+            str(my_user_id),
+        ),
+        last_message=await redis_client.hget(
+            f"chatting_last_message:{target_user_id}",
             str(my_user_id),
         ),
     )
@@ -300,7 +310,6 @@ async def make_chatting_room(
     return create_response(data=chatting)
 
 
-
 @router.put("/{target_user_id}")
 async def add_chat(
     target_user_id: UUID,
@@ -313,6 +322,15 @@ async def add_chat(
     """
 
     message, type = data.message, data.type
+
+    if type == "image":
+        image = await crud.image.get_image_media_by_id(
+            id=uuid.UUID(message),
+        )
+        if not image:
+            raise IdNotFoundException(ImageMedia, message)
+        image_url = image.media.path
+        message = image_url
 
     current_account_type = current_account.account_type
     target_user = None
@@ -333,18 +351,20 @@ async def add_chat(
         "type": type,
         "message": message,
     }
+    
+    last_message = message if type == "text" else "사진을 보냈습니다."
 
     await redis_client.rpush(redis_key, json.dumps(data))
 
     await redis_client.hset(
         f"chatting_last_message:{my_user_id}",
         str(target_user_id),
-        message,
+        last_message,
     )
     await redis_client.hset(
         f"chatting_last_message:{target_user_id}",
         str(my_user_id),
-        message,
+        last_message,
     )
 
     old_chatting_unread_count = await redis_client.hget(
@@ -402,7 +422,7 @@ async def read_chat(
         str(target_user_id),
         0,
     )
-    
+
     await redis_client.hset(
         f"chatting_last_read_at:{my_user_id}",
         str(target_user_id),
