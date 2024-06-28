@@ -7,7 +7,7 @@ from app.models.account_model import Account
 from app.utils.notify import make_notify
 from app.schemas.notify_schema import INotifyCreate
 from fastapi import FastAPI, Request
-from app.api.deps import get_current_account, get_redis_client
+from app.api.deps import get_current_account, get_current_account_data_without_db, get_redis_client, reusable_oauth2
 from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -208,18 +208,13 @@ async def flush(redis: Redis = Depends(get_redis_client)):
 async def notification(
     request: Request,
     redis: Redis = Depends(get_redis_client),
-    current_account: Account = Depends(deps.get_current_account()),
+    data : dict | None = Depends(get_current_account_data_without_db()),
 ):
-    if current_account is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
-        )
-    user_id = current_account.id
-    if current_account.company_id:
-        user_id = current_account.company_id
-    elif current_account.artist_id:
-        user_id = current_account.artist_id
+    print(data)
+    user_id = data["userId"]
+    print(user_id)
+    
+    
     return EventSourceResponse(listen_to_channel(user_id, redis))
 
 

@@ -89,6 +89,7 @@ async def get_token_by_account(account: Account, redis_client: Redis):
     if account.account_type == IAccountTypeEnum.artist:
         paylaod_data = {
             "id": str(account.id),
+            "userId": str(account.artist.id),
             "nickname" : account.artist.nickname,
             "profileImage" : account.artist.profile_image.media.path if account.artist.profile_image else None,
             "accountType" : "artist",
@@ -97,6 +98,7 @@ async def get_token_by_account(account: Account, redis_client: Redis):
     elif account.account_type == IAccountTypeEnum.company:
         paylaod_data = {
             "id": str(account.id),
+            "userId": str(account.company.id),
             "nickname" : account.company.nickname,
             "profileImage" : account.company.profile_image.media.path if account.company.profile_image else None,
             "accountType" : "company",

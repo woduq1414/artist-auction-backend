@@ -96,6 +96,7 @@ def get_current_account(
                     detail="Could not validate credentials2",
                 )
         account: Account = await crud.account.get(id=account_id, db_session=db_session)
+       
         if not account:
             if is_login_required:
                 raise HTTPException(status_code=404, detail="User not found")
@@ -105,6 +106,51 @@ def get_current_account(
         return account
 
     return current_account
+
+
+def get_current_account_data_without_db(
+    required_roles: list[str] = None, is_login_required: bool = True
+) -> dict | None:
+    async def current_account(
+        token = Depends(reusable_oauth2),
+
+    ) -> dict | None:
+
+        if not token:
+            if is_login_required:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Could not validate credentials",
+                )
+            else:
+                return None
+     
+ 
+        try:
+            print(token)
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            )
+        except (jwt.JWTError, ValidationError) as e:
+            print(e)
+            
+            if is_login_required:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Could not validate credentials1",
+                )
+            else:
+                return None
+        data = payload["data"]
+        
+        
+
+        
+
+        return data
+
+    return current_account
+
 
 
 def minio_auth() -> MinioClient:
