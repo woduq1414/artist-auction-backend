@@ -1,7 +1,7 @@
 from app.utils.partial import optional
 from app.models.user_model import UserBase
 from app.models.group_model import GroupBase
-from app.schemas.common_schema import IGenderEnum, ILoginTypeEnum
+from app.schemas.common_schema import IAccountTypeEnum, IGenderEnum, ILoginTypeEnum
 from app.schemas.account_schema import AccountBase, IAccountCreate
 from app.models.artist_model import ArtistBase
 from app.models.account_model import Account
@@ -69,6 +69,7 @@ class IArtistInfoRead(SQLModel):
     profile_image: IImageMediaRead | None
     description: str | None
     content : str | None
+    account_type : IAccountTypeEnum | None
 
 
 class IUserBasicInfo(BaseModel):

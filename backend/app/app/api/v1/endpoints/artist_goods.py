@@ -242,6 +242,7 @@ async def create_artist_goods_deal(
     query = (
         select(crud.artist_goods_deal.model)
         .where(crud.artist_goods_deal.model.company_id == current_account.company_id)
+        .where(crud.artist_goods_deal.model.status != "complete")
         .where(
             crud.artist_goods_deal.model.artist_goods_id
             == new_artist_goods_deal.artist_goods_id
@@ -279,6 +280,7 @@ async def update_artist_goods_deal(
     new_artist_goods_deal: IArtistGoodsDealUpdate,
     current_account: Account = Depends(deps.get_current_account()),
     redis_client: Redis = Depends(deps.get_redis_client),
+    db_session=Depends(deps.get_db),
 ) -> IPostResponseBase[IArtistGoodsDealRead]:
     """
     Creates a new user
@@ -291,6 +293,18 @@ async def update_artist_goods_deal(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="company_id is required"
         )
+    old_artist_goods_deal = await crud.artist_goods_deal.get(
+        id=new_artist_goods_deal.id, db_session=db_session
+    )
+    if old_artist_goods_deal is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="not exist"
+        )
+    if old_artist_goods_deal.company_id != current_account.company_id or old_artist_goods_deal.status != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="not allowed"
+        )
+    
 
     artist_goods_deal = await crud.artist_goods_deal.update(
         obj_in=new_artist_goods_deal, company_id=current_account.company.id
@@ -360,6 +374,12 @@ async def delete_artist_goods_deal(
             or artist_goods_deal.company_id != current_account.company_id
         ):
             raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+        
+        if artist_goods_deal.status != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="not allowed"
+            )
+        
         await crud.artist_goods_deal.remove(id=artist_goods_deal_id)
         return create_response(data=artist_goods_deal)
 
@@ -368,6 +388,7 @@ async def delete_artist_goods_deal(
 async def get_artist_goods_deal_by_id(
     artist_goods_deal_id: UUID,
     is_edit: bool = Query(False),
+    is_payment: bool = Query(False),
     current_account: Account = Depends(deps.get_current_account()),
 ) -> IPostResponseBase[IArtistGoodsDealRead]:
     """
@@ -398,6 +419,17 @@ async def get_artist_goods_deal_by_id(
             ):
 
                 raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+        if is_payment:
+            if (
+                current_account.company_id is None
+                or artist_goods_deal.company_id != current_account.company_id
+            ):
+                raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
+            if artist_goods_deal.status != "accept":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="not allowed"
+                )
+            
 
         artist_goods_deal.request_image_list = json.loads(
             artist_goods_deal.request_image_list
@@ -493,7 +525,6 @@ async def get_artist_goods_by_id(
 @router.delete("/{artist_goods_id}")
 async def get_artist_goods_by_id(
     artist_goods_id: UUID,
-    is_edit: bool = Query(False),
     current_account: Account = Depends(
         deps.get_current_account(is_login_required=False)
     ),

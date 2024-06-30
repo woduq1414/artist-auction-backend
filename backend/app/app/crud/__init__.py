@@ -15,4 +15,6 @@ from .artist_goods_crud import artist_goods
 from .artist_goods_deal_crud import artist_goods_deal
 
 from .chatting_crud import chatting
+
+from .payment_crud import payment
 # from .purchase_crud import purchase

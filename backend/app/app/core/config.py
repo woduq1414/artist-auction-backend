@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET : str
     
     ENVIRONMENT : str
+    
+    TOSS_API_KEY : str
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:

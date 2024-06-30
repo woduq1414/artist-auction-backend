@@ -73,7 +73,8 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArt
             price=obj_in.price,
             artist_goods_id=obj_in.artist_goods_id,
             artist_id=artist_id,
-            company_id=company_id
+            company_id=company_id,
+            payment_id=None
         )
         
         example_image_url_list = []

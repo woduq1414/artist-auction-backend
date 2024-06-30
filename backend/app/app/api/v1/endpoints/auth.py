@@ -509,10 +509,26 @@ async def get_account_profile(
         raise IdNotFoundException(Account, account_id)
     if account.artist_id:
         artist = await crud.artist.get(id=account.artist_id)
-        return create_response(data=artist)
+        data = IArtistInfoRead(
+            id=artist.id,
+            account_type=account.account_type,
+            name=account.name,
+            email=account.email,
+            nickname=artist.nickname,
+            profile_image=artist.profile_image,
+        )
+        return create_response(data=data)
     elif account.company_id:
         company = await crud.company.get(id=account.company_id)
-        return create_response(data=company)
+        data = ICompanyInfoRead(
+            id=company.id,
+            account_type=account.account_type,
+            name=account.name,
+            email=account.email,
+            nickname=company.nickname,
+            profile_image=company.profile_image,
+        )
+        return create_response(data=data)
 
 
 @router.get("/artist/{artist_id}")

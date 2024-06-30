@@ -7,7 +7,7 @@ from datetime import datetime
 from app.models.artist_model import Artist
 from app.models.artist_goods_model import ArtistGoods
 from app.models.company_model import Company
-
+from app.models.artist_goods_deal_model import ArtistGoodsDeal
 from sqlmodel import BigInteger, Field, SQLModel, Relationship, Column, DateTime, String
 from typing import Optional
 from sqlalchemy_utils import ChoiceType
@@ -15,15 +15,14 @@ from pydantic import EmailStr
 from uuid import UUID
 
 
-class ArtistGoodsDealBase(SQLModel):
+class PaymentBase(SQLModel):
 
-    title : str = Field(nullable=False)
-    description : str = Field(nullable=False)
-    
-    request_image_list : str = Field(nullable=False)
-    
 
-    price : int = Field(nullable=False)
+    amount : int = Field(nullable=False)
+    payment_key : str = Field(nullable=False)
+    payment_type : str = Field(nullable=False)
+    order_id : str = Field(nullable=False)
+    
     
     
 
@@ -32,15 +31,18 @@ class ArtistGoodsDealBase(SQLModel):
 
 
 
-class ArtistGoodsDeal(BaseUUIDModel, ArtistGoodsDealBase, table=True):
+class Payment(BaseUUIDModel, PaymentBase, table=True):
     
-    status : str = Field(nullable=False)
-    artist_goods_id: UUID | None = Field(default=None, foreign_key="ArtistGoods.id")
+    status : str = Field(nullable=True)
+    detail : str = Field(nullable=True)
     
-    artist_goods: ArtistGoods = Relationship(
+    
+    artist_goods_deal_id: UUID | None = Field(default=None, foreign_key="ArtistGoodsDeal.id")
+    
+    artist_goods_deal: ArtistGoodsDeal = Relationship(
         sa_relationship_kwargs={
             "lazy": "joined",
-            "primaryjoin": "ArtistGoodsDeal.artist_goods_id==ArtistGoods.id",
+            "primaryjoin": "Payment.artist_goods_deal_id==ArtistGoodsDeal.id",
         }
     )
     
@@ -49,7 +51,7 @@ class ArtistGoodsDeal(BaseUUIDModel, ArtistGoodsDealBase, table=True):
     company: Company = Relationship(
         sa_relationship_kwargs={
             "lazy": "joined",
-            "primaryjoin": "ArtistGoodsDeal.company_id==Company.id",
+            "primaryjoin": "Payment.company_id==Company.id",
         }
     )
     
@@ -57,10 +59,8 @@ class ArtistGoodsDeal(BaseUUIDModel, ArtistGoodsDealBase, table=True):
     artist: Artist = Relationship(
         sa_relationship_kwargs={
             "lazy": "joined",
-            "primaryjoin": "ArtistGoodsDeal.artist_id==Artist.id",
+            "primaryjoin": "Payment.artist_id==Artist.id",
         }
     )
-    
-
     
     

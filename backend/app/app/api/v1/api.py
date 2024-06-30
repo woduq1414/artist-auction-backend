@@ -19,7 +19,8 @@ from app.api.v1.endpoints import (
     artist,
     artist_goods,
     notify,
-    chatting
+    chatting,
+    payment
 )
 
 api_router = APIRouter()
@@ -40,6 +41,8 @@ api_router.include_router(artist_goods.router, prefix="/artist/goods", tags=["ar
 api_router.include_router(notify.router, prefix="/notify", tags=["notify"])
 
 api_router.include_router(chatting.router, prefix="/chatting", tags=["chatting"])
+
+api_router.include_router(payment.router, prefix="/payment", tags=["payment"])
 
 # api_router.include_router(team.router, prefix="/team", tags=["team"])
 # api_router.include_router(hero.router, prefix="/hero", tags=["hero"])
