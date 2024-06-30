@@ -424,7 +424,7 @@ async def edit_profile(
             artist.nickname = edit_data.nickname
 
         if edit_data.password is not None:
-            artist.password = security.get_password_hash(edit_data.password)
+            current_account.password = security.get_password_hash(edit_data.password)
 
         if edit_data.content is not None:
             artist.content = edit_data.content
@@ -450,7 +450,7 @@ async def edit_profile(
             company.nickname = edit_data.nickname
 
         if edit_data.password is not None:
-            company.password = security.get_password_hash(edit_data.password)
+            current_account.password = security.get_password_hash(edit_data.password)
 
         if edit_data.content is not None:
             company.content = edit_data.content

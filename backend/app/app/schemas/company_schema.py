@@ -5,6 +5,7 @@ from app.schemas.common_schema import IGenderEnum, ILoginTypeEnum
 from app.schemas.account_schema import AccountBase, IAccountCreate
 from app.models.company_model import CompanyBase
 from app.models.account_model import Account
+from app.utils.validators import check_account_description, check_nickname, check_password
 from pydantic import BaseModel
 from uuid import UUID
 from enum import Enum
@@ -91,8 +92,23 @@ class ICompanySimpleInfoRead(SQLModel):
 
 
 class ICompanyInfoEdit(SQLModel):
+    email : str | None
     name : str | None
     nickname : str | None
     password : str | None
     content : str | None
     description : str | None
+    
+    @validator("nickname")
+    def check_nickname_val(cls, value) -> str | None:
+
+        return check_nickname(cls, value)
+        
+        
+    @validator("password")
+    def check_password_val(cls, value) -> str | None:
+        return check_password(cls, value)
+    
+    @validator("description")
+    def check_description_val(cls, value) -> str | None:
+        return check_account_description(cls, value)
