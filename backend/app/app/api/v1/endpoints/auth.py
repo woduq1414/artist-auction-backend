@@ -516,6 +516,8 @@ async def get_account_profile(
             email=account.email,
             nickname=artist.nickname,
             profile_image=artist.profile_image,
+            description=artist.description,
+            content=artist.content,
         )
         return create_response(data=data)
     elif account.company_id:
@@ -527,6 +529,8 @@ async def get_account_profile(
             email=account.email,
             nickname=company.nickname,
             profile_image=company.profile_image,
+            description=company.description,
+            content=company.content,
         )
         return create_response(data=data)
 

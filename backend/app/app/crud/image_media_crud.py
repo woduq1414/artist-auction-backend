@@ -37,7 +37,7 @@ class CRUDImageMedia(CRUDBase[ImageMedia, IImageMediaCreate, IImageMediaUpdate])
                 file_name = f"{account_id}:{str(uuid.uuid4())}"
                 file_data = BytesIO(image_modified.file_data)
 
-                upload_result = cloudinary.uploader.upload(
+                upload_result =  cloudinary.uploader.upload(
                     file_data, public_id=file_name, resource_type="image",
                     folder = settings.ENVIRONMENT
                     

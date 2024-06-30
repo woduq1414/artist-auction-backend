@@ -17,4 +17,5 @@ from .artist_goods_deal_crud import artist_goods_deal
 from .chatting_crud import chatting
 
 from .payment_crud import payment
+from .file_crud import file
 # from .purchase_crud import purchase

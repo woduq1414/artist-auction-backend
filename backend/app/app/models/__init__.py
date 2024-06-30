@@ -15,3 +15,4 @@ from .company_model import Company
 from .artist_goods_deal_model import ArtistGoodsDeal
 from .chatting_model import Chatting
 from .payment_model import Payment
+from .file_model import File

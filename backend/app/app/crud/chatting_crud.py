@@ -77,31 +77,7 @@ class CRUDChatting(CRUDBase[Chatting, IChattingCreate, IChattingUpdate]):
             return new_chatting
         else:
             
-            target_artist_goods = await db_session.execute(select(ArtistGoods).where(and_(ArtistGoods.artist_id == artist_id, ArtistGoods.id == obj_in.id)))
-            target_artist_goods = target_artist_goods.scalars().first()
-            
-            if not target_artist_goods:
-                raise Exception('해당 상품이 존재하지 않습니다.')
-            
-            # update with new_artist_goods instance
-            
-            target_artist_goods.title = new_artist_goods.title
-            target_artist_goods.description = new_artist_goods.description
-            target_artist_goods.category = new_artist_goods.category
-            target_artist_goods.price = new_artist_goods.price
-            target_artist_goods.content = new_artist_goods.content
-            target_artist_goods.duration = new_artist_goods.duration
-            target_artist_goods.start_date = new_artist_goods.start_date
-            target_artist_goods.end_date = new_artist_goods.end_date
-            target_artist_goods.status = new_artist_goods.status
-            target_artist_goods.max_price = new_artist_goods.max_price
-            target_artist_goods.main_image_id = new_artist_goods.main_image_id
-            target_artist_goods.example_image_url_list = new_artist_goods.example_image_url_list
-            
-            await db_session.commit()
-            await db_session.refresh(target_artist_goods)
-            
-            return target_artist_goods
+            pass
                 
         
         

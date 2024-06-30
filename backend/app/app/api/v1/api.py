@@ -20,7 +20,8 @@ from app.api.v1.endpoints import (
     artist_goods,
     notify,
     chatting,
-    payment
+    payment,
+    file
 )
 
 api_router = APIRouter()
@@ -43,6 +44,7 @@ api_router.include_router(notify.router, prefix="/notify", tags=["notify"])
 api_router.include_router(chatting.router, prefix="/chatting", tags=["chatting"])
 
 api_router.include_router(payment.router, prefix="/payment", tags=["payment"])
+api_router.include_router(file.router, prefix="/file", tags=["file"])
 
 # api_router.include_router(team.router, prefix="/team", tags=["team"])
 # api_router.include_router(hero.router, prefix="/hero", tags=["hero"])
