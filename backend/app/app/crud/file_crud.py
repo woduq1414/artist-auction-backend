@@ -35,6 +35,13 @@ class CRUDFile(CRUDBase[File, IFileCreate, IFileUpdate]):
             description = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             file_name = file.filename
             file_data = file.file.read()
+            
+            # 100MB 용량 제한
+            
+            if len(file_data) > 100000000:
+                raise Exception("파일 용량이 100MB를 초과했습니다.")
+            
+            
             upload_result = cloudinary.uploader.upload(
                 file_data, public_id=file_name,
                 resource_type = "auto",
