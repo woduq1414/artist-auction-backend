@@ -40,7 +40,7 @@ from app.utils.exceptions import (
 from app import crud
 from app.api import deps
 from app.deps import user_deps, role_deps
-from app.models import User, UserFollow, Media
+from app.models import User, UserFollow, Media, File
 from app.models.role_model import Role
 from app.utils.login import verify_kakao_access_token
 from app.utils.minio_client import MinioClient
@@ -331,6 +331,18 @@ async def add_chat(
             raise IdNotFoundException(ImageMedia, message)
         image_url = image.media.path
         message = image_url
+    elif type == "file":
+        file = await crud.file.get_file_by_id(
+            id=uuid.UUID(message),
+        )
+        if not file:
+            raise IdNotFoundException(File, message)
+        file_url = file.path
+        message = {
+            "url": file_url,
+            "name": file.title,
+            "format": file.format,
+        }
 
     current_account_type = current_account.account_type
     target_user = None
@@ -352,7 +364,9 @@ async def add_chat(
         "message": message,
     }
     
-    last_message = message if type == "text" else "사진을 보냈습니다."
+    last_message = message if type == "text" else (
+        "사진을 보냈습니다." if type == "image" else "파일을 보냈습니다."
+    )
 
     await redis_client.rpush(redis_key, json.dumps(data))
 
