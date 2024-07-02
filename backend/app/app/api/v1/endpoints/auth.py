@@ -227,6 +227,76 @@ async def social_kakao_redirect(
                 ),
             )
             return response
+        
+        
+@router.get("/social/google")
+async def social_google_redirect(
+    params: Params = Depends(),
+    code: str = Query(...),
+    redis_client: Redis = Depends(deps.get_redis_client),
+):
+
+    res = requests.post(
+        "https://oauth2.googleapis.com/token",
+        {
+            "grant_type": "authorization_code",
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "client_secret": settings.GOOGLE_CLIENT_SECRET,
+            "redirect_uri": settings.BACKEND_URL + "/api/v1/auth/social/google",
+            "code": code,
+        },
+    )
+    
+    
+    if res.status_code != 200:
+        raise HTTPException(status_code=400, detail="Google login failed")
+    
+    data = json.loads(res.text)
+    
+    id_token = data.get("id_token")
+    payload = json.loads(base64.b64decode(id_token.split(".")[1] + "==").decode("utf-8"))
+    
+    social_id = payload.get("sub")
+    account = await crud.account.get_by_social_id(social_id=social_id)
+
+    if account:
+        response = RedirectResponse(url=settings.FRONTEND_URL + "/")
+
+        data = await auth_deps.get_token_by_account(
+            account=account, redis_client=redis_client
+        )
+        print(account)
+
+        response.set_cookie(
+            key="accessToken",
+            value=data.access_token,
+            domain=(
+                "127.0.0.1"
+                if ("127.0.0.1" in settings.BACKEND_URL)
+                else ".artistauction.kro.kr"
+            ),
+        )
+
+        return response
+    else:
+        response = RedirectResponse(
+            url=settings.FRONTEND_URL + "/auth/new?loginType=google"
+        )
+        response.set_cookie(
+            key="socialLoginInfo",
+            value=base64.b64encode(
+                json.dumps(
+                    {"loginType": "google", "accessToken": data["access_token"], "name": payload.get("name"), "email": payload.get("email")}
+                ).encode("utf-8")
+            ).decode("utf-8"),
+            domain=(
+                "127.0.0.1"
+                if ("127.0.0.1" in settings.BACKEND_URL)
+                else ".artistauction.kro.kr"
+            ),
+        )
+        return response
+        
 
 
 @router.post("/artist", status_code=status.HTTP_201_CREATED)
@@ -250,6 +320,17 @@ async def register_artist(
             raise HTTPException(status_code=400, detail="Kakao login failed")
         else:
             register_data.social_id = kakao_id
+    if register_data.login_type == ILoginTypeEnum.google:
+    
+        # verify access token
+        res = requests.get(
+            f"https://oauth2.googleapis.com/tokeninfo?access_token={register_data.social_id}"
+        )
+        if res.status_code != 200:
+            raise HTTPException(status_code=400, detail="Google login failed")
+        data = json.loads(res.text)
+        register_data.social_id = data["sub"]
+        
 
     artist = await crud.artist.create(obj_in=register_data)
     register_data.artist_id = artist.id
@@ -285,7 +366,18 @@ async def register_company(
             raise HTTPException(status_code=400, detail="Kakao login failed")
         else:
             register_data.social_id = kakao_id
-
+    if register_data.login_type == ILoginTypeEnum.google:
+ 
+        # verify access token
+        res = requests.get(
+            f"https://oauth2.googleapis.com/tokeninfo?access_token={register_data.social_id}"
+        )
+        if res.status_code != 200:
+            raise HTTPException(status_code=400, detail="Google login failed")
+        data = json.loads(res.text)
+        register_data.social_id = data["sub"]
+        
+        
     artist = await crud.company.create(obj_in=register_data)
     register_data.company_id = artist.id
 
