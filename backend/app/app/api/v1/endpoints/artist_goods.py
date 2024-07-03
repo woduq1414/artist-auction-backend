@@ -501,6 +501,10 @@ async def get_artist_goods_by_id(
 
     artist_goods = await crud.artist_goods.get(id=artist_goods_id)
 
+    price_data = {
+        "price": artist_goods.price,
+        "max_price": artist_goods.max_price,
+    }
     if artist_goods:
 
         if is_edit:
@@ -517,12 +521,28 @@ async def get_artist_goods_by_id(
                     or artist_goods.artist_id != current_account.artist.id
                 ):
                     raise IdNotFoundException(ArtistGoods, artist_goods_id)
+            else:
+                
+                price_data_detail = await crud.artist_goods_deal.get_price_data(
+                    artist_goods_id=artist_goods_id, start_date=artist_goods.start_date, start_price=artist_goods.price
+                )
+                
+          
+                price_data = {
+                    **price_data, **price_data_detail
+                }
+                
 
         artist_goods.example_image_url_list = json.loads(
             artist_goods.example_image_url_list
         )
+        
+        artist_goods_read = IArtistGoodsRead(
+            **artist_goods.__dict__, price_data=price_data
+        )
+        
 
-        return create_response(data=artist_goods)
+        return create_response(data=artist_goods_read)
     else:
         raise IdNotFoundException(ArtistGoods, artist_goods_id)
 

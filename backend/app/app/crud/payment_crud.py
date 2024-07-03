@@ -51,7 +51,9 @@ class CRUDPayment(CRUDBase[Payment, IPaymentCreate, IPaymentUpdate]):
             order_id = obj_in.order_id,
             detail = obj_in.detail,
             artist_goods_deal_id = artist_goods_deal_id,
-            status = "success"
+            status = "success",
+            artist_id = obj_in.artist_id,
+            company_id = obj_in.company_id,
         )
      
         if not is_update:

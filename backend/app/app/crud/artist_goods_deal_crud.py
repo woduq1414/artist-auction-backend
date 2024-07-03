@@ -20,16 +20,24 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 import datetime
 from app.utils.login import verify_kakao_access_token
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 
 
 class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArtistGoodsDealUpdate]):
 
-    async def get_artist_goods_list_by_artist_id(
+    async def get_artist_goods_deal_list_by_artist_id(
         self, *, artist_id: UUID, db_session: AsyncSession | None = None
     ) -> list[ArtistGoodsDeal] | None:
         db_session = db_session or super().get_db().session
-        artist_goods = await db_session.execute(select(ArtistGoods).where(ArtistGoods.artist_id == artist_id))
+        artist_goods = await db_session.execute(select(ArtistGoodsDeal).where(ArtistGoodsDeal.artist_id == artist_id))
+        return artist_goods.scalars().all()
+    
+    async def get_paid_artist_goods_deal_list_by_artist_goods_id(
+        self, *, artist_goods_id: UUID, db_session: AsyncSession | None = None
+    ) -> list[ArtistGoodsDeal] | None:
+        db_session = db_session or super().get_db().session
+        artist_goods = await db_session.execute(select(ArtistGoodsDeal).where(ArtistGoodsDeal.artist_goods_id == artist_goods_id).where(or_(ArtistGoodsDeal.status == 'paid', ArtistGoodsDeal.status == 'completed'))
+                                                .order_by(ArtistGoodsDeal.created_at.asc()))
         return artist_goods.scalars().all()
     
     
@@ -153,7 +161,51 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArt
         return await super().update(obj_current=obj_current, obj_new=obj_new, db_session=db_session)
 
 
- 
+    async def get_price_data(
+        self,
+        *,
+        artist_goods_id: UUID,
+        start_date: datetime.datetime,
+        start_price: int,
+        db_session: AsyncSession | None = None
+    ) -> dict | None:
+        db_session = db_session or super().get_db().session
+        artist_goods_deal_list = await crud.artist_goods_deal.get_paid_artist_goods_deal_list_by_artist_goods_id(artist_goods_id=artist_goods_id)
+    
+        sum_price = 0
+        price_by_day = {}
+        
+        price_by_day[start_date.strftime("%Y-%m-%d")] = [start_price]
+        
+        if artist_goods_deal_list:
+            for artist_goods_deal in artist_goods_deal_list:
+        
+                sum_price += artist_goods_deal.price
+
+                day = artist_goods_deal.created_at.strftime("%Y-%m-%d")
+            
+                if day in price_by_day:
+                    price_by_day[day].append(artist_goods_deal.price)
+                else:
+                    price_by_day[day] = [artist_goods_deal.price]
+            
+        values = []
+        keys = []
+        for day in price_by_day:
+            price_by_day[day] = sum(price_by_day[day]) / len(price_by_day[day])
+            
+            values.append(price_by_day[day])
+            keys.append(day)
+            
+        if not artist_goods_deal_list:
+            keys = keys * 2
+            values = values * 2
+            
+        return {
+            "average_price" : sum_price / len(artist_goods_deal_list) if  len(artist_goods_deal_list) > 0 else None,
+            "price_by_day" : values,
+            "day_list" : keys
+        }
 
     # async def update_photo(
     #     self,

@@ -58,6 +58,8 @@ class IArtistGoodsRead(ArtistGoodsBase):
     max_price : int
     image : IImageMediaRead
     
+    price_data : dict | None
+    
     
 
 
