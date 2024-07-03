@@ -25,5 +25,6 @@ class IFileRead(SQLModel):
     link: str | None = None
     path: str | None
     format: str | None
+    title : str | None
     
     account_id: UUID | None

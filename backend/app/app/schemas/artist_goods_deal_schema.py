@@ -23,6 +23,7 @@ class IArtistGoodsDealCreate(ArtistGoodsDealBase):
     description : str
     
     request_image_list : str | list | None
+    request_file_list : str | list | None
     
 
     
@@ -39,6 +40,7 @@ class IArtistGoodsDealRead(ArtistGoodsDealBase):
     description : str
     
     request_image_list : str | list | None
+    request_file_list : str | list | None
     
     status : str
     

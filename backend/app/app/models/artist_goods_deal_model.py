@@ -21,7 +21,7 @@ class ArtistGoodsDealBase(SQLModel):
     description : str = Field(nullable=False)
     
     request_image_list : str = Field(nullable=False)
-    
+    request_file_list : str = Field(nullable=True)
 
     price : int = Field(nullable=False)
     

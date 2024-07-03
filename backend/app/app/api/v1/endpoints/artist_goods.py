@@ -297,14 +297,14 @@ async def update_artist_goods_deal(
         id=new_artist_goods_deal.id, db_session=db_session
     )
     if old_artist_goods_deal is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="not exist"
-        )
-    if old_artist_goods_deal.company_id != current_account.company_id or old_artist_goods_deal.status != "pending":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="not exist")
+    if (
+        old_artist_goods_deal.company_id != current_account.company_id
+        or old_artist_goods_deal.status != "pending"
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="not allowed"
         )
-    
 
     artist_goods_deal = await crud.artist_goods_deal.update(
         obj_in=new_artist_goods_deal, company_id=current_account.company.id
@@ -374,12 +374,12 @@ async def delete_artist_goods_deal(
             or artist_goods_deal.company_id != current_account.company_id
         ):
             raise IdNotFoundException(ArtistGoodsDeal, artist_goods_deal_id)
-        
+
         if artist_goods_deal.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="not allowed"
             )
-        
+
         await crud.artist_goods_deal.remove(id=artist_goods_deal_id)
         return create_response(data=artist_goods_deal)
 
@@ -429,11 +429,16 @@ async def get_artist_goods_deal_by_id(
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST, detail="not allowed"
                 )
-            
 
         artist_goods_deal.request_image_list = json.loads(
             artist_goods_deal.request_image_list
         )
+        if artist_goods_deal.request_file_list:
+            artist_goods_deal.request_file_list = json.loads(
+                artist_goods_deal.request_file_list
+            )
+        else:
+            artist_goods_deal.request_file_list = []
 
         return create_response(data=artist_goods_deal)
     else:

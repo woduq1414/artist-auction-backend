@@ -85,10 +85,22 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArt
                     'id' : str(image.id),
                     'url' : image.media.path
                 })    
+                
+        
+        request_file_list = []
+        for request_file_id in obj_in.request_file_list:
+            file = await crud.file.get_file_by_id(id = request_file_id)
+            if file:
+                request_file_list.append({
+                    'id' : str(file.id),
+                    'url' : file.path,
+                    "title" : file.title,
+                })
         
         print(example_image_url_list)
         
         new_artist_goods_deal.request_image_list = json.dumps(example_image_url_list)
+        new_artist_goods_deal.request_file_list = json.dumps(request_file_list)
         
         
         if not is_update:
@@ -110,6 +122,7 @@ class CRUDArtistGoodsDeal(CRUDBase[ArtistGoodsDeal, IArtistGoodsDealCreate, IArt
             target_artist_goods_deal.description = new_artist_goods_deal.description
             target_artist_goods_deal.price = new_artist_goods_deal.price
             target_artist_goods_deal.request_image_list = new_artist_goods_deal.request_image_list
+            target_artist_goods_deal.request_file_list = new_artist_goods_deal.request_file_list
             
             await db_session.commit()
             await db_session.refresh(target_artist_goods_deal)

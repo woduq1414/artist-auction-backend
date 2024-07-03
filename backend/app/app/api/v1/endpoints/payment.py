@@ -113,8 +113,13 @@ async def confirm_payment(
     
     payment = await crud.payment.create(db_session = db_session, obj_in=new_payment, artist_goods_deal_id=artist_goods_deal_id)
     
-    artist_goods_deal.payment_id = payment.id
+
     artist_goods_deal.status = "paid"
+    
+    artist_goods = artist_goods_deal.artist_goods
+    
+    artist_goods.max_price = max(artist_goods.max_price, artist_goods_deal.price * 10000)
+    
     await db_session.commit()
 
     await make_notify(
